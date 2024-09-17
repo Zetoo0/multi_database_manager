@@ -1,0 +1,494 @@
+MSSQL|
+------
+List All Tables:
+----------------
+SELECT TABLE_NAME
+FROM INFORMATION_SCHEMA.TABLES
+WHERE TABLE_TYPE = 'BASE TABLE';
+
+List All Columns in a Table:
+---------------------------
+SELECT COLUMN_NAME, DATA_TYPE
+FROM INFORMATION_SCHEMA.COLUMNS
+WHERE TABLE_NAME = 'your_table_name';
+
+List All Views:
+---------------
+SELECT TABLE_NAME
+FROM INFORMATION_SCHEMA.VIEWS;
+
+List All Stored Procedures:
+---------------------------
+SELECT name
+FROM sys.procedures;
+
+List databases:
+---------------
+SELECT name FROM sys.databases
+
+List Functions:
+---------------
+SELECT name, type_desc
+FROM sys.objects
+WHERE type IN ('FN', 'IF', 'TF');
+
+List Trigger Functions:
+-----------------------
+SELECT name, type_desc
+FROM sys.objects
+WHERE type = 'TR';
+
+List Event Triggers: #Mssql doesnt have event triggers like in postgres but there are DDL triggers
+--------------------
+SELECT name, type_desc
+FROM sys.triggers
+WHERE is_ms_shipped = 0 AND parent_class_desc = 'DATABASE_DDL_TRIGGER';
+
+List Aggregates:
+----------------
+SELECT name
+FROM sys.objects
+WHERE type = 'AF';
+
+List Materalized Views: #In MSSQL, there is no direct support for materialized views, but you can use Indexed Views
+-----------------------
+SELECT name, type_desc
+FROM sys.views
+WHERE is_ms_shipped = 0;
+
+List Types:
+-----------
+SELECT name, system_type_id, user_type_id
+FROM sys.types
+WHERE is_user_defined = 1;
+
+List Languages:
+---------------
+#Mssql only supports T-SQL
+
+List Catalogs:
+--------------
+SELECT name
+FROM sys.databases;
+
+List Foreign Data Wrappers: #MSSQL does not have a concept of "foreign data wrappers" like PostgreSQL. However, MSSQL uses Linked Servers to connect to other databases
+---------------------------
+EXEC sp_linkedservers;
+
+List Schemas:
+-------------
+SELECT name
+FROM sys.schemas;
+
+List Indexes:
+-------------
+SELECT i.name, o.name AS table_name
+FROM sys.indexes i
+JOIN sys.objects o ON i.object_id = o.object_id
+WHERE o.type = 'U';  -- 'U' means user table
+
+List Constraints (Primary, Foreign, Unique Keys):
+-------------------------------------------------
+SELECT name, type_desc 
+FROM sys.objects 
+WHERE type IN ('PK', 'F', 'UQ');  -- PK: Primary Key, F: Foreign Key, UQ: Unique Key
+
+List Sequences:
+---------------
+SELECT name 
+FROM sys.sequences;
+
+List Roles and Users:
+---------------------
+SELECT i.name, o.name AS table_name
+FROM sys.indexes i
+JOIN sys.objects o ON i.object_id = o.object_id
+WHERE o.type = 'U';  -- 'U' means user table
+
+List Table Statistics:
+----------------------
+EXEC sp_spaceused 'your_table_name';
+
+List Active Sessions:
+---------------------
+SELECT session_id, login_name 
+FROM sys.dm_exec_sessions;
+
+List Locks:
+-----------
+SELECT * FROM sys.dm_tran_locks;
+
+List Partitions:
+----------------
+SELECT * 
+FROM sys.partitions 
+WHERE object_id = OBJECT_ID('your_table_name');
+
+List User Privileges:
+---------------------
+SELECT dp.name AS Principal, 
+       dp.type_desc AS PrincipalType,
+       o.name AS Object,
+       p.permission_name
+FROM sys.database_permissions p
+JOIN sys.objects o ON p.major_id = o.object_id
+JOIN sys.database_principals dp ON p.grantee_principal_id = dp.principal_id;
+
+List Database Settings:
+-----------------------
+SELECT * FROM sys.configurations;
+
+-----
+MYSQL|
+------
+
+List All Tables:
+----------------
+SHOW TABLES;
+
+List All Columns in a Table:
+----------------------------
+SHOW COLUMNS FROM your_table_name;
+
+List All Views:
+---------------
+SHOW FULL TABLES WHERE Table_type = 'VIEW';
+
+List All Stored Procedures:
+---------------------------
+SHOW PROCEDURE STATUS WHERE Db = 'your_database_name';
+
+List databases:
+---------------
+SHOW DATABASES
+
+List Functions:
+---------------
+SHOW FUNCTION STATUS;
+
+List Trigger Functions:
+-----------------------
+SHOW TRIGGERS;
+
+List Event Triggers:
+--------------------
+MYSQL doesnt support event triggers
+
+List Aggregates: 
+----------------
+MySQL does not support custom aggregate functions out of the box.
+
+List Materalized Views:
+-----------------------
+MySQL does not support materialized views
+
+List Types:
+-----------
+MySQL does not have a dedicated command to list custom types.
+
+List Languages:
+---------------
+MySQL supports only SQL, so no such query is applicable.
+
+List Catalogs:
+--------------
+SHOW DATABASES;
+
+List Foreign Data Wrappers:
+---------------------------
+MySQL does not have foreign data wrappers.
+
+List Schemas:
+-------------
+SELECT schema_name 
+FROM information_schema.schemata;
+
+List Indexes:
+-------------
+SHOW INDEXES FROM your_table_name;
+
+List Constraints (Primary, Foreign, Unique Keys):
+-------------------------------------------------
+SHOW CREATE TABLE your_table_name;  -- Constraints are included in the table definition
+
+List Sequences:
+---------------
+MySQL: MySQL does not have sequences (uses AUTO_INCREMENT).
+
+List Roles and Users:
+---------------------
+SELECT user FROM mysql.user;
+
+List Table Statistics:
+----------------------
+SHOW TABLE STATUS LIKE 'your_table_name';
+
+List Active Sessions:
+---------------------
+SHOW PROCESSLIST;
+
+List Locks:
+-----------
+SHOW ENGINE INNODB STATUS;
+
+List Partitions:
+----------------
+SELECT * 
+FROM information_schema.partitions 
+WHERE table_name = 'your_table_name';
+
+List User Privileges:
+---------------------
+SHOW GRANTS FOR 'your_user'@'host';
+
+List Database Settings:
+-----------------------
+SHOW VARIABLES;
+
+------
+SQLITE|
+------
+
+List All Tables:
+----------------
+SELECT name
+FROM sqlite_master
+WHERE type = 'table';
+
+List All Columns in a Table:
+----------------------------
+PRAGMA table_info(your_table_name);
+
+List All Views:
+---------------
+SELECT name
+FROM sqlite_master
+WHERE type = 'view';
+
+List All Stored Procedures:
+--------------------------    
+Sqlite doesnt support stored procedures
+
+List Functions:
+---------------
+SQLite does not support stored functions
+
+List Trigger Functions:
+-----------------------
+SELECT name 
+FROM sqlite_master 
+WHERE type = 'trigger';
+
+List Event Triggers:
+--------------------
+SQLite does not have event triggers.
+
+List Aggregates:
+----------------
+SQLite does not support custom aggregate functions.
+
+List Materalized Views:
+-----------------------
+SQLite does not support materialized views.
+
+List Types:
+-----------
+SQLite uses dynamic typing and does not have a system of custom types.
+
+List Languages:
+---------------
+SQLite supports only SQL, so no such query is applicable.
+
+List Catalogs:
+--------------
+SQLite does not have a catalog system; each .db file is essentially its own database.
+
+List Foreign Data Wrappers:
+---------------------------
+SQLite does not support foreign data wrappers.
+
+List Schemas:
+-------------
+SQLite does not support schemas, as each database file is its own schema.
+
+List Indexes:
+-------------
+SELECT name 
+FROM sqlite_master 
+WHERE type = 'index';
+
+List Constraints (Primary, Foreign, Unique Keys):
+-------------------------------------------------
+PRAGMA foreign_key_list('your_table_name');
+
+List Sequences:
+---------------
+SQLite does not support sequences directly.
+
+List Roles and Users:
+---------------------
+SQLite does not have user roles or privileges natively.
+
+List Table Statistics:
+----------------------
+SQLite does not have a direct way of fetching table statistics.
+
+List Active Sessions:
+---------------------
+SQLite does not have session tracking.
+
+List Locks:
+-----------
+SQLite does not support detailed locking mechanisms.
+
+List Partitions:
+----------------
+SQLite does not support partitioning.
+
+List User Privileges:
+---------------------
+SQLite does not have a privilege management system.
+
+List Database Settings: #SQLite does not have a settings system, but you can query pragmas
+-----------------------
+PRAGMA encoding;
+PRAGMA journal_mode;
+
+--------
+POSTGRES|
+--------
+List All Tables:
+-----------------
+SELECT table_name
+FROM information_schema.tables
+WHERE table_schema = 'public' AND table_type = 'BASE TABLE';
+
+List All Columns in a Table:
+----------------------------
+SELECT column_name, data_type
+FROM information_schema.columns
+WHERE table_name = 'your_table_name';
+
+List All Views:
+----------------
+SELECT table_name
+FROM information_schema.views
+WHERE table_schema = 'public';
+
+List All Stored Procedures:
+---------------------------
+SELECT routine_name
+FROM information_schema.routines
+WHERE routine_type = 'PROCEDURE' AND specific_schema = 'public';
+
+List Databases:
+---------------
+SELECT datname 
+FROM pg_database 
+WHERE datistemplate=false;
+
+List Functions:
+---------------
+SELECT routine_name, routine_type
+FROM information_schema.routines
+WHERE routine_type = 'FUNCTION';
+
+List Trigger Functions:
+-----------------------
+SELECT tgname 
+FROM pg_trigger;
+
+List Event Triggers:
+--------------------
+SELECT evtname 
+FROM pg_event_trigger;
+
+List Aggregates:
+----------------
+SELECT proname 
+FROM pg_proc 
+WHERE proisagg = true;
+
+List Materalized Views:
+-----------------------
+SELECT matviewname 
+FROM pg_matviews;
+
+List Types:
+-----------
+SELECT typname 
+FROM pg_type 
+WHERE typtype = 'b';  -- base types
+
+List Languages:
+---------------
+SELECT lanname 
+FROM pg_language;
+
+List Catalogs:
+--------------
+SELECT datname 
+FROM pg_database;
+
+List Foreign Data Wrappers:
+---------------------------
+SELECT fdwname 
+FROM pg_foreign_data_wrapper;
+
+List Schemas:
+-------------
+SELECT schema_name 
+FROM information_schema.schemata;
+
+List Indexes:
+-------------
+SELECT indexname, indexdef 
+FROM pg_indexes 
+WHERE schemaname = 'public';
+
+List Constraints (Primary, Foreign, Unique Keys):
+-------------------------------------------------
+SELECT constraint_name, constraint_type
+FROM information_schema.table_constraints 
+WHERE table_schema = 'public';
+
+List Sequences:
+---------------
+SELECT sequence_name 
+FROM information_schema.sequences 
+WHERE sequence_schema = 'public';
+
+List Roles and Users:
+---------------------
+SELECT rolname 
+FROM pg_roles;
+
+List Table Statistics:
+----------------------
+SELECT relname, n_live_tup, n_dead_tup
+FROM pg_stat_user_tables;
+
+List Active Sessions:
+---------------------
+SELECT pid, usename, application_name, client_addr 
+FROM pg_stat_activity;
+
+List Locks:
+-----------
+SELECT * FROM pg_locks;
+
+List Partitions:
+----------------
+SELECT * 
+FROM pg_partitions 
+WHERE tablename = 'your_table_name';
+
+List User Privileges:
+---------------------
+SELECT grantee, privilege_type, table_name 
+FROM information_schema.role_table_grants 
+WHERE grantee = 'your_user';
+
+List Database Settings:
+-----------------------
+SHOW ALL;
