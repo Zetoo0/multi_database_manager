@@ -76,7 +76,7 @@
                     <label className="block text-sm font-medium text-beige-700">
                         Driver Type
                     </label>
-                    <select className="mt-1 p-2 w-full border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+                    <select className="mt-1 p-2 w-full border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 text-black"
                         value={driverType}
                         onChange={(e) => setDriverType(e.target.value)}
                     >
@@ -89,7 +89,7 @@
 
                     <div className="grid grid-cols-10 gap-4">
                     <div className="col-span-7">
-                        <label className="block text-sm font-medium text-gray-700">
+                        <label className="block text-sm font-medium text-beige-700">
                         Server
                         </label>
                         <input
@@ -98,11 +98,11 @@
                         onChange={(e) => setServer(e.target.value)}
                         placeholder="e.g., localhost"
                         required
-                        className="mt-1 p-2 w-full border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+                        className="mt-1 p-2 w-full border border-gray-600 rounded-md focus:ring-indigo-500 focus:border-indigo-500 text-black"
                         />
                     </div>
                     <div className="col-span-3">
-                        <label className="block text-sm font-medium text-gray-700">
+                        <label className="block text-sm font-medium text-beige-700">
                         Port
                         </label>
                         <input
@@ -111,7 +111,7 @@
                         onChange={(e) => setPort(e.target.value)}
                         placeholder="5432"
                         required
-                        className="mt-1 p-2 w-full border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+                        className="mt-1 p-2 w-full border border-gray-600 rounded-md focus:ring-indigo-500 focus:border-indigo-500 text-black"
                         />
                     </div>
                     </div>
@@ -125,7 +125,7 @@
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
                         required
-                        className="mt-1 p-2 w-full border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+                        className="mt-1 p-2 w-full border border-gray-600 rounded-md focus:ring-indigo-500 focus:border-indigo-500 text-black"
                     />
                     </div>
 
@@ -138,7 +138,7 @@
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         required
-                        className="mt-1 p-2 w-full border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+                        className="mt-1 p-2 w-full border border-gray-600 rounded-md focus:ring-indigo-500 focus:border-indigo-500 text-black"
                     />
                     </div>
 

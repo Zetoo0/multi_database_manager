@@ -4,13 +4,13 @@
 
  
 use std::{fmt::format, future::IntoFuture, str::FromStr};
-use rbdc::db::{Driver,Connection,ConnectOptions};
+use rbdc::db::{Driver,Connection,ConnectOptions,Row,Placeholder};
 use rbdc_mssql::MssqlDriver;
 use rbdc_mysql::MysqlDriver;
-use rbdc_pg::PgDriver;
+use rbdc_pg::{PgDriver};
 use rbdc_sqlite::SqliteDriver;
 use rbatis::{executor::{Executor, RBatisRef}, Error}; 
-use serde::{Serialize,Deserialize};
+use serde::{Serialize,Deserialize}; 
 use serde_json::Value;
 use strum_macros::{Display, EnumString, ToString};
 
@@ -19,7 +19,9 @@ struct Table{
 }
 
 trait Lister {
-  fn list_tables(&self)->Vec<Table>;
+  fn list_tables(&self)->Vec<Table>{
+    vec![]
+  }
   fn list_views(&self);
   fn list_stored_procedures(&self);
   fn list_columns(&self,table:&str);
@@ -44,6 +46,7 @@ impl Lister for rbdc_pg::PgDriver{
   }
 }*/
 
+
 #[derive(Serialize,Deserialize,Debug,EnumString,Display)]
 enum DriverType{
   #[strum(serialize="mysql")]
@@ -67,21 +70,19 @@ fn get_driver(driver_type:DriverType)->Box<dyn Driver>{
 
 #[derive(Serialize, Deserialize)]
 struct DatabaseConnection{
-    port: String,
-    server: String,
-    username: String,
-    password: String,
-    driver_type: String,
+  port: String,
+  server: String,
+  username: String,
+  password: String,
+  driver_type: String,
 }
 
 #[tauri::command]
 async fn init_database(data:DatabaseConnection) -> Result<String, String> {
   let rb = rbatis::RBatis::new();
-  println!("asd?");
-  match DriverType::from_str("postgresql"){
+  match DriverType::from_str(&data.driver_type){
     Ok(variante) => {
       let url = format!("{}://{}:@{}:{}",variante.to_string(),data.username,data.server,data.port);
-     // Ok(url)
       let res = rb.link(get_driver(variante), &url);
       println!("{:?}",res.await.is_ok());
       println!("{:?}",rb.driver_type());
@@ -92,10 +93,7 @@ async fn init_database(data:DatabaseConnection) -> Result<String, String> {
     },
     Err(err) => Err(err.to_string())
   }
-  //Err(String::from("ezz"))
-
 }
-
 
 fn main() {
     tauri::Builder::default()

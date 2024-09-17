@@ -1,3 +1,4 @@
-csatlakozás összerakása
-adatok elérése az adatbázisból(all view,table,column,stored procedures stb)
-createhez cuccok adatbázisonként
+csatlakozás összerakása --?
+adatok elérése az adatbázisból(all view,table,column,stored procedures stb) --
+createhez cuccok adatbázisonként --?
+sql highli
