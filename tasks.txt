@@ -2,3 +2,13 @@ csatlakozás összerakása --?
 adatok elérése az adatbázisból(all view,table,column,stored procedures stb) --
 createhez cuccok adatbázisonként --?
 sql highli
+
+
+   {/*<Router>
+      <AppLayout>
+        <Routes>
+         {<Route path="/" element={<ConnectionForm />} />}
+          {<Route path="/editor" element={<SqlEditor />} />}
+        </Routes>
+      </AppLayout>
+    </Router>*/}

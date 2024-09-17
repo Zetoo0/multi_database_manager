@@ -14,7 +14,7 @@ WHERE TABLE_NAME = 'your_table_name';
 
 List All Views:
 ---------------
-SELECT TABLE_NAME
+SELECT TABLE_NAME    
 FROM INFORMATION_SCHEMA.VIEWS;
 
 List All Stored Procedures:
@@ -137,6 +137,23 @@ JOIN sys.database_principals dp ON p.grantee_principal_id = dp.principal_id;
 List Database Settings:
 -----------------------
 SELECT * FROM sys.configurations;
+
+List Foreign Key Relationships
+------------------------------
+SELECT fk.name AS FK_name, tp.name AS parent_table, cp.name AS parent_column, tr.name AS ref_table, cr.name AS ref_column
+FROM sys.foreign_keys AS fk
+INNER JOIN sys.tables AS tp ON fk.parent_object_id = tp.object_id
+INNER JOIN sys.tables AS tr ON fk.referenced_object_id = tr.object_id
+INNER JOIN sys.foreign_key_columns AS fkc ON fk.object_id = fkc.constraint_object_id
+INNER JOIN sys.columns AS cp ON fkc.parent_column_id = cp.column_id AND fkc.parent_object_id = cp.object_id
+INNER JOIN sys.columns AS cr ON fkc.referenced_column_id = cr.column_id AND fkc.referenced_object_id = cr.object_id;
+
+Lis Default Values For Columns
+------------------------------
+SELECT COLUMN_NAME, COLUMN_DEFAULT
+FROM INFORMATION_SCHEMA.COLUMNS
+WHERE TABLE_NAME = 'your_table_name';
+
 
 -----
 MYSQL|
@@ -492,3 +509,26 @@ WHERE grantee = 'your_user';
 List Database Settings:
 -----------------------
 SHOW ALL;
+
+List Foreign Key Relationships
+------------------------------
+SELECT conname AS constraint_name, conrelid::regclass AS table_name,
+       a.attname AS column_name, confrelid::regclass AS foreign_table_name,
+       af.attname AS foreign_column_name
+FROM   pg_constraint
+JOIN   pg_attribute a ON a.attnum = ANY(conkey) AND a.attrelid = conrelid
+JOIN   pg_attribute af ON af.attnum = ANY(confkey) AND af.attrelid = confrelid
+WHERE  contype = 'f';
+
+List Triggers Associated A Specific Table
+-----------------------------------------
+SELECT tgname
+FROM pg_trigger
+WHERE tgrelid = 'your_table_name'::regclass;
+
+List Default Values For Columns
+-------------------------------
+SELECT column_name, column_default
+FROM information_schema.columns
+WHERE table_name = 'your_table_name';
+       

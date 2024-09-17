@@ -14,9 +14,15 @@ importers:
       '@codemirror/lang-sql':
         specifier: ^6.7.1
         version: 6.7.1(@codemirror/view@6.33.0)
+      '@codemirror/state':
+        specifier: ^6.4.1
+        version: 6.4.1
       '@codemirror/theme-one-dark':
         specifier: ^6.1.2
         version: 6.1.2
+      '@codemirror/view':
+        specifier: ^6.33.0
+        version: 6.33.0
       '@tauri-apps/api':
         specifier: ^1.6.0
         version: 1.6.0

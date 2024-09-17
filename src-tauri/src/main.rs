@@ -79,15 +79,15 @@ struct DatabaseConnection{
 
 #[tauri::command]
 async fn init_database(data:DatabaseConnection) -> Result<String, String> {
+  println!("Itt egyáltalán vagyok?");
   let rb = rbatis::RBatis::new();
-  match DriverType::from_str(&data.driver_type){
+  match DriverType::from_str("postgresql"){
     Ok(variante) => {
       let url = format!("{}://{}:@{}:{}",variante.to_string(),data.username,data.server,data.port);
       let res = rb.link(get_driver(variante), &url);
       println!("{:?}",res.await.is_ok());
       println!("{:?}",rb.driver_type());
-      let query_res = rb.query("SELECT datname
-                                          FROM pg_database WHERE datistemplate=false;",vec![]);
+      let query_res = rb.query("SELECT * FROM pg_roles;",vec![]);
       println!("{:?}",query_res.await.map(|rows| rows.into_iter().map(|row| row.1)));
       Ok(String::from("Successfully conneced!"))
     },
