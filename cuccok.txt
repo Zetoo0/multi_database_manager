@@ -1,0 +1,122 @@
+SELECT TABLE_NAME
+FROM INFORMATION_SCHEMA.TABLES
+WHERE TABLE_TYPE = 'BASE TABLE';
+
+List All Columns in a Table:
+
+sql
+
+SELECT COLUMN_NAME, DATA_TYPE
+FROM INFORMATION_SCHEMA.COLUMNS
+WHERE TABLE_NAME = 'your_table_name';
+
+List All Views:
+
+sql
+
+SELECT TABLE_NAME
+FROM INFORMATION_SCHEMA.VIEWS;
+
+List All Stored Procedures:
+
+sql
+
+    SELECT name
+    FROM sys.procedures;
+
+*databases*
+SELECT name FROM sys.databases
+
+
+2. MySQL
+
+    List All Tables:
+
+    sql
+
+SHOW TABLES;
+
+List All Columns in a Table:
+
+sql
+
+SHOW COLUMNS FROM your_table_name;
+
+List All Views:
+
+sql
+
+SHOW FULL TABLES WHERE Table_type = 'VIEW';
+
+List All Stored Procedures:
+
+sql
+
+    SHOW PROCEDURE STATUS WHERE Db = 'your_database_name';
+
+*databases* 
+SHOW DATABASES
+
+3. SQLite
+
+    List All Tables:
+
+    sql
+
+SELECT name
+FROM sqlite_master
+WHERE type = 'table';
+
+List All Columns in a Table:
+
+sql
+
+PRAGMA table_info(your_table_name);
+
+List All Views:
+
+sql
+
+    SELECT name
+    FROM sqlite_master
+    WHERE type = 'view';
+
+    List All Stored Procedures:
+    (SQLite does not support stored procedures natively, but you can manage your logic using triggers or user-defined functions.)
+
+4. PostgreSQL (PG)
+
+    List All Tables:
+
+    sql
+
+SELECT table_name
+FROM information_schema.tables
+WHERE table_schema = 'public' AND table_type = 'BASE TABLE';
+
+List All Columns in a Table:
+
+sql
+
+SELECT column_name, data_type
+FROM information_schema.columns
+WHERE table_name = 'your_table_name';
+
+List All Views:
+
+sql
+
+SELECT table_name
+FROM information_schema.views
+WHERE table_schema = 'public';
+
+List All Stored Procedures:
+
+sql
+
+SELECT routine_name
+FROM information_schema.routines
+WHERE routine_type = 'PROCEDURE' AND specific_schema = 'public';
+
+**get databases**
+SELECT datname FROM pg_database WHERE datistemplate=false;

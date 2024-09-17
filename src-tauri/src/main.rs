@@ -1,49 +1,106 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use tauri::Manager;
-use rbdc::{db::{Driver}};
-use rbdc_mysql::driver as mysql_driver;
-use rbdc_pg::driver as pg_driver;
-use rbdc_mssql::driver as ms_driver;
-use rbdc_sqlite::driver as sqlite_driver;
-use serde::{Serialize,Deserialize};
 
-#[derive(Serialize,Deserialize,Debug)]
-enum DriverType{
-  Mysql,
-  Pg,
-  Mssql,
-  Sqlite,
+ 
+use std::{fmt::format, future::IntoFuture, str::FromStr};
+use rbdc::db::{Driver,Connection,ConnectOptions};
+use rbdc_mssql::MssqlDriver;
+use rbdc_mysql::MysqlDriver;
+use rbdc_pg::PgDriver;
+use rbdc_sqlite::SqliteDriver;
+use rbatis::{executor::{Executor, RBatisRef}, Error}; 
+use serde::{Serialize,Deserialize};
+use serde_json::Value;
+use strum_macros::{Display, EnumString, ToString};
+
+struct Table{
+
 }
 
+trait Lister {
+  fn list_tables(&self)->Vec<Table>;
+  fn list_views(&self);
+  fn list_stored_procedures(&self);
+  fn list_columns(&self,table:&str);
+}
+
+/* 
+impl Lister for rbdc_pg::PgDriver{
+  fn list_tables(&self)->Vec<Table> {
+      
+  }
+
+  fn list_columns(&self,table:&str) {
+      
+  }
+
+  fn list_stored_procedures(&self) {
+
+  }
+
+  fn list_views(&self) {
+      
+  }
+}*/
+
+#[derive(Serialize,Deserialize,Debug,EnumString,Display)]
+enum DriverType{
+  #[strum(serialize="mysql")]
+  Mysql,
+  #[strum(serialize="postgresql")]
+  Pg,
+  #[strum(serialize="mssql")]
+  Mssql,
+  #[strum(serialize="sqlite")]
+  Sqlite
+}
+ 
 fn get_driver(driver_type:DriverType)->Box<dyn Driver>{
   match driver_type{
-    DriverType::Mysql => Box::new(mysql_driver::Driver {}),
-    DriverType::Pg => Box::new(pg_driver::Driver {}),
-    DriverType::Mssql => Box::new(mssql_driver::Driver {}),
-    DriverType::Sqlite => Box::new(sqlite_driver::Driver {}),
+    DriverType::Mysql => Box::new(MysqlDriver {}),
+    DriverType::Pg => Box::new(PgDriver {}),
+    DriverType::Mssql => Box::new(MssqlDriver {}),
+    DriverType::Sqlite => Box::new(SqliteDriver {}),
   }
 }
 
-
-
-struct ConnectionForm{
-  address: String,
-  port: u16,
-  database: String,
-  username: String,
-  password: String,
+#[derive(Serialize, Deserialize)]
+struct DatabaseConnection{
+    port: String,
+    server: String,
+    username: String,
+    password: String,
+    driver_type: String,
 }
 
 #[tauri::command]
-fn init_database(connection_form:ConnectionForm){
-  let rb = rbdc::RBatis::new();
-  let _ = rb.link(get_driver(DriverType::Mysql),format!("{}://{}:{}@{}:{}/{}",connection_form.database,connection_form.username,connection_form.password,connection_form.address,connection_form.port));   
+async fn init_database(data:DatabaseConnection) -> Result<String, String> {
+  let rb = rbatis::RBatis::new();
+  println!("asd?");
+  match DriverType::from_str("postgresql"){
+    Ok(variante) => {
+      let url = format!("{}://{}:@{}:{}",variante.to_string(),data.username,data.server,data.port);
+     // Ok(url)
+      let res = rb.link(get_driver(variante), &url);
+      println!("{:?}",res.await.is_ok());
+      println!("{:?}",rb.driver_type());
+      let query_res = rb.query("SELECT datname
+                                          FROM pg_database WHERE datistemplate=false;",vec![]);
+      println!("{:?}",query_res.await.map(|rows| rows.into_iter().map(|row| row.1)));
+      Ok(String::from("Successfully conneced!"))
+    },
+    Err(err) => Err(err.to_string())
+  }
+  //Err(String::from("ezz"))
+
 }
 
+
 fn main() {
-  tauri::Builder::default()
-    .run(tauri::generate_context!())
+    tauri::Builder::default()
+    .invoke_handler(tauri::generate_handler![init_database])
+    .run(tauri::generate_context!())    
     .expect("error while running tauri application");
+
 }

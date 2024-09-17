@@ -1,18 +1,18 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/schema.json",
   "build": {
-    "beforeBuildCommand": "pnpm build",
-    "beforeDevCommand": "pnpm dev",
-    "devPath": "http://localhost:5173",
+    "beforeBuildCommand": "npm run build",
+    "beforeDevCommand": "npm run dev",
+    "devPath": "http://localhost:3000",
     "distDir": "../build"
   },
   "package": {
-    "productName": ".",
+    "productName": "app",
     "version": "0.1.0"
   },
   "tauri": {
     "allowlist": {
-      "all": false
+      "all": true
     },
     "bundle": {
       "active": true,
@@ -51,7 +51,8 @@
       "csp": null
     },
     "updater": {
-      "active": false
+      "active": true,
+      "pubkey": "../public_key.pem"
     },
     "windows": [
       {
