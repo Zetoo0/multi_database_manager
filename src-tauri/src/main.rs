@@ -51,7 +51,7 @@ impl Lister for rbdc_pg::PgDriver{
 enum DriverType{
   #[strum(serialize="mysql")]
   Mysql,
-  #[strum(serialize="postgresql")]
+  #[strum(serialize="postgres")]
   Pg,
   #[strum(serialize="mssql")]
   Mssql,
