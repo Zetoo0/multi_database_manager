@@ -3,6 +3,9 @@
 
 
  
+pub mod database;
+pub mod metadata;
+
 use std::{fmt::format, future::IntoFuture, str::FromStr};
 use rbdc::db::{Driver,Connection,ConnectOptions,Row,Placeholder};
 use rbdc_mssql::MssqlDriver;
@@ -13,6 +16,8 @@ use rbatis::{executor::{Executor, RBatisRef}, Error};
 use serde::{Serialize,Deserialize}; 
 use serde_json::Value;
 use strum_macros::{Display, EnumString, ToString};
+
+use crate::metadata::repository::PostgresRepository;
 
 struct Table{
 
@@ -92,6 +97,13 @@ async fn init_database(data:DatabaseConnection) -> Result<String, String> {
     },
     Err(err) => Err(err.to_string())
   }
+}
+
+#[tauri::command]
+async fn repo_test() -> Result<String,String> {
+  let rb = rbatis::RBatis::new();
+  let postgres = PostgresRepository::PostgresRepository::new(&rb);
+  Ok(String::from("Successfully conneced!"))
 }
 
 fn main() {

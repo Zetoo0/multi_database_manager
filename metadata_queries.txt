@@ -666,3 +666,247 @@ SELECT tmplname, tmplinit FROM pg_ts_template;
 List Tablespaces:
 -----------------
 SELECT spcname, spclocation, spcowner FROM pg_tablespace;
+
+-------
+Oracle|
+-------
+
+List Tables:
+------------
+SELECT  table_name
+FROM all_tables
+WHERE owner = 'YOUR_SCHEMA';
+
+List Columns in a Table
+-----------------------
+SELECT 
+    column_name,
+    data_type,
+    data_length,
+    nullable
+FROM all_tab_columns
+WHERE table_name = 'YOUR_TABLE_NAME'
+  AND owner = 'YOUR_SCHEMA';
+
+List Views
+----------
+SELECT 
+    view_name
+FROM all_views
+WHERE owner = 'YOUR_SCHEMA';
+
+List Stored Procedures
+----------------------
+SELECT 
+    object_name
+FROM all_procedures
+WHERE object_type = 'PROCEDURE'
+  AND owner = 'YOUR_SCHEMA';
+
+List Functions
+--------------
+SELECT 
+    object_name,
+    object_type
+FROM all_procedures
+WHERE object_type = 'FUNCTION'
+  AND owner = 'YOUR_SCHEMA';
+
+List Triggers
+-------------
+SELECT 
+    trigger_name,
+    trigger_type,
+    triggering_event
+FROM all_triggers
+WHERE owner = 'YOUR_SCHEMA';
+
+List Indexes
+------------
+SELECT 
+    index_name,
+    table_name,
+    uniqueness
+FROM all_indexes
+WHERE table_owner = 'YOUR_SCHEMA';
+
+List Constraints (Primary, Foreign, Unique Keys)
+------------------------------------------------
+SELECT 
+    constraint_name,
+    constraint_type,
+    table_name
+FROM all_constraints
+WHERE owner = 'YOUR_SCHEMA';
+
+List Sequences
+--------------
+SELECT 
+    sequence_name
+FROM all_sequences
+WHERE sequence_owner = 'YOUR_SCHEMA';
+
+List Roles and Users
+--------------------
+SELECT 
+    username
+FROM all_users;
+
+List Table Statistics
+---------------------
+SELECT 
+    table_name,
+    num_rows,
+    blocks,
+    empty_blocks,
+    avg_row_len
+FROM all_tables
+WHERE owner = 'YOUR_SCHEMA';
+
+List Active Sessions
+--------------------
+SELECT 
+    sid,
+    serial#,
+    username,
+    status,
+    machine
+FROM v$session;
+
+List Locks
+----------
+SELECT 
+    sid,
+    serial#,
+    type,
+    mode_held,
+    mode_requested
+FROM v$lock;
+
+List Partitions
+---------------
+SELECT 
+    table_name,
+    partition_name,
+    high_value
+FROM all_tab_partitions
+WHERE table_owner = 'YOUR_SCHEMA';
+
+List User Privileges
+--------------------
+SELECT 
+    grantee,
+    privilege,
+    table_name
+FROM all_tab_privs
+WHERE owner = 'YOUR_SCHEMA';
+
+List Database Settings
+----------------------
+SELECT 
+    parameter,
+    value
+FROM v$parameter;
+
+List Foreign Key Relationships
+------------------------------
+SELECT 
+    constraint_name,
+    table_name,
+    column_name,
+    r_constraint_name AS foreign_constraint,
+    r_table_name AS foreign_table,
+    r_column_name AS foreign_column
+FROM all_cons_columns
+JOIN all_constraints ON all_cons_columns.constraint_name = all_constraints.constraint_name
+WHERE all_constraints.constraint_type = 'R'
+  AND all_constraints.owner = 'YOUR_SCHEMA';
+
+List Triggers Associated with a Specific Table
+----------------------------------------------
+SELECT 
+    trigger_name
+FROM all_triggers
+WHERE table_name = 'YOUR_TABLE_NAME'
+  AND owner = 'YOUR_SCHEMA';
+
+List Default Values for Columns
+-------------------------------
+SELECT 
+    column_name,
+    column_default
+FROM all_tab_columns
+WHERE table_name = 'YOUR_TABLE_NAME'
+  AND owner = 'YOUR_SCHEMA';
+
+List Catalog Objects
+--------------------
+SELECT 
+    object_name,
+    object_type
+FROM all_objects
+WHERE object_type IN ('TABLE', 'VIEW', 'PROCEDURE', 'SEQUENCE')
+  AND owner = 'YOUR_SCHEMA';
+
+List (Group) Roles(Magyarul simán csak roleok xd) - Oracle does not have a direct equivalent of PostgreSQL's group roles. However, you can list roles:
+--------------------------------------------------
+SELECT 
+    role,
+    admin_option
+FROM dba_roles;
+
+List Type Conversions Instead Of Casts - Oracle does not have a direct equivalent to PostgreSQL's pg_cast. However, you can get a list of type conversions:
+--------------------------------------
+SELECT 
+    src_type_name,
+    dest_type_name
+FROM all_type_conversions
+WHERE src_owner = 'YOUR_SCHEMA'
+  AND dest_owner = 'YOUR_SCHEMA';
+
+ListPublications - X
+----------------
+Oracle does not have a direct equivalent to PostgreSQL's publications. For Oracle Streams or GoldenGate, refer to specific documentation or system views.
+
+List Collations - Oracle uses character sets rather than collations directly, so you would typically query:
+---------------
+SELECT 
+    character_set_name
+FROM nls_database_parameters;
+
+List Domains - Oracle uses domain types as user-defined types:
+------------
+SELECT 
+    type_name,
+    type_owner
+FROM all_types
+WHERE type_owner = 'YOUR_SCHEMA';
+
+List FTS Configurations - Oracle Text configurations:
+SELECT 
+    configuration_name
+FROM all_ctx_index_settings;
+
+List FTS Dictionaries
+---------------------
+SELECT 
+    dictionary_name
+FROM all_ctx_dictionaries;
+
+List FTS Parsers
+----------------
+SELECT 
+    parser_name
+FROM all_ctx_parsers;
+
+List FTS Templates
+------------------
+SELECT 
+    template_name
+FROM all_ctx_templates;
+
+List Tablespaces
+----------------
+SELECT 
+    tablespace_name
+FROM dba_tablespaces;

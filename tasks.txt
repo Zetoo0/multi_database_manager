@@ -24,3 +24,4 @@ Database:
         Views
 
 
+Repositories -> 1. Postgres 2/3. MySql 3/2. MsSql 4. Oracle 5. SqLite
