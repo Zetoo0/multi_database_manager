@@ -12,15 +12,7 @@
         password:string,
         driver_type:string,
     }
-
-    interface MyStruct {
-        field1: string;
-        field2: number;
-        // other fields as needed
-    }
-      
-       
-    
+  
     const ConnectionForm = () => {
             
         const [driverType, setDriverType] = useState('');
@@ -42,24 +34,8 @@
             console.log("Geci");  
             const connectionData:DatabaseConnection = {
                 port,server,username,password,driver_type:driverType
-            };/*
-            console.log("valai??");
-            setConn(connectionData);
-            if(conn){
-                alert(conn.driverType);
-                alert(conn.username);
-                alert(conn.password);
-                alert(conn.server);
-                alert(conn.port);
-                await invoke('init_database', {connection_stuffs:conn}).then((response) => {
-                    console.log('Response from Rust:', response);
-                    alert('Connection string: ' + response);    
-                })
-                .catch((error) => {     
-                    console.error('Error:', error);
-                    alert('Failed to generate connection string');
-                });  
-            } ̇*/
+            };
+            console.log(connectionData);
             try {
                 await invoke('init_database', { data: connectionData }).then((resp) => alert(resp));
               } catch (error) {
