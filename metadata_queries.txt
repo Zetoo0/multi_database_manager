@@ -82,7 +82,7 @@ FROM sys.schemas;
 
 List Indexes:
 -------------
-SELECT i.name, o.name AS table_name
+SELECT i.name, o.name AS table_name, i.type_desc AS index_type, i.is_unique AS is_unique, i.is_primary_key AS is_primary_key
 FROM sys.indexes i
 JOIN sys.objects o ON i.object_id = o.object_id
 WHERE o.type = 'U';  -- 'U' means user table
@@ -154,6 +154,47 @@ SELECT COLUMN_NAME, COLUMN_DEFAULT
 FROM INFORMATION_SCHEMA.COLUMNS
 WHERE TABLE_NAME = 'your_table_name';
 
+List All Catalog Objects:
+-------------------------
+SELECT 
+    o.object_id,
+    o.name,
+    s.schema_id,
+    o.type,
+    o.create_date,
+    o.modify_date
+FROM sys.objects o
+JOIN sys.schemas s ON o.schema_id = s.schema_id
+WHERE o.type IN ('U', 'V', 'P', 'FN', 'IF', 'TF');  -- U: user table, V: view, P: procedure, FN: scalar function, IF: inline function, TF: table-valued function
+
+
+List Group Roles:
+-----------------
+SELECT name, principal_id, type_desc FROM sys.database_principals WHERE type = 'R';
+
+List Publications:
+------------------
+SELECT name, description, enabled FROM sys.publications;
+
+List Collations:
+----------------
+SELECT name, description FROM sys.fn_helpcollations();
+
+List FTS Configurations:
+------------------------
+SELECT fulltext_catalog_id, name FROM sys.fulltext_catalogs;
+
+List FTS Dictionaries:
+----------------------
+SELECT * FROM sys.fulltext_index_columns;
+
+List FTS Parsers:
+-----------------
+SELECT * FROM sys.fulltext_stoplists;
+
+List Tablespaces:
+-----------------
+SELECT name, type, data_space_id FROM sys.filegroups;
 
 -----
 MYSQL|
@@ -222,7 +263,16 @@ FROM information_schema.schemata;
 
 List Indexes:
 -------------
-SHOW INDEXES FROM your_table_name;
+--SHOW INDEXES FROM 'your_table_name';--
+SELECT 
+    TABLE_NAME AS table_name,
+    INDEX_NAME AS index_name,
+    COLUMN_NAME AS column_name,
+    NON_UNIQUE AS non_unique,
+    INDEX_TYPE AS index_type
+FROM information_schema.statistics
+WHERE TABLE_SCHEMA = 'your_database_name';
+
 
 List Constraints (Primary, Foreign, Unique Keys):
 -------------------------------------------------
@@ -261,6 +311,23 @@ SHOW GRANTS FOR 'your_user'@'host';
 List Database Settings:
 -----------------------
 SHOW VARIABLES;
+
+List All Catalog Objects:
+-------------------------
+SELECT *
+FROM INFORMATION_SCHEMA.TABLES
+WHERE TABLE_SCHEMA = 'your_database_name';
+
+List Group Roles:
+-----------------
+SELECT user, host FROM mysql.user WHERE user_type = 'ROLE';
+
+List Collations:
+----------------
+SELECT collation_name, character_set_name FROM information_schema.COLLATIONS;
+
+List Tablespaces:
+SELECT TABLESPACE_NAME, ENGINE, LOGFILE_GROUP_NAME FROM information_schema.tablespaces;
 
 ------
 SQLITE|
@@ -330,7 +397,7 @@ SQLite does not support schemas, as each database file is its own schema.
 
 List Indexes:
 -------------
-SELECT name 
+SELECT name AS index_name, tbl_name AS table_name, sql AS DEFINITION
 FROM sqlite_master 
 WHERE type = 'index';
 
@@ -370,6 +437,19 @@ List Database Settings: #SQLite does not have a settings system, but you can que
 -----------------------
 PRAGMA encoding;
 PRAGMA journal_mode;
+
+List All Catalog Objects:
+-------------------------
+SELECT *
+FROM sqlite_master;
+
+List Collations:
+----------------
+PRAGMA collation_list;
+
+List FTS Configurations, Dictionaries, Parsers, Templates:
+----------------------------------------------------------
+SELECT name FROM sqlite_master WHERE type = 'table' AND name LIKE 'fts%';
 
 --------
 POSTGRES|
@@ -459,7 +539,7 @@ FROM information_schema.schemata;
 
 List Indexes:
 -------------
-SELECT indexname, indexdef 
+SELECT indexname, indexdef, indrelid, indkey
 FROM pg_indexes 
 WHERE schemaname = 'public';
 
@@ -532,3 +612,57 @@ SELECT column_name, column_default
 FROM information_schema.columns
 WHERE table_name = 'your_table_name';
        
+List All Catalog Objects:
+-------------------------
+SELECT 
+    oid,
+    relname,
+    relnamespace,
+    relowner,
+    relam,
+    reltuples,
+    relpages,
+    relchecks,
+FROM pg_catalog.pg_class
+WHERE relkind IN ('r', 'v', 'p', 'S');  -- r: table, v: view, p: procedure, S: sequence
+
+
+List Group Roles:
+-----------------
+SELECT rolname, rolsuper, rolcanlogin FROM pg_roles WHERE rolcanlogin = false;
+
+List Casts:
+-----------
+SELECT castsource::regtype, casttarget::regtype, castfunc FROM pg_cast;
+
+List Publications:
+------------------
+SELECT pubname, pubowner FROM pg_publication;
+
+List Collations:
+----------------
+SELECT collname, collnamespace, collencoding FROM pg_collation;
+
+List Domains:
+-------------
+SELECT domain_name, data_type, domain_default FROM information_schema.domains;
+
+List FTS Configurations:
+------------------------
+SELECT cfgname, cfgnamespace FROM pg_ts_config;
+
+List FTS Dictionaries:
+----------------------
+SELECT dictname, dicttemplate FROM pg_ts_dict;
+
+List FTS Parsers:
+-----------------
+SELECT prsname, prsstart FROM pg_ts_parser;
+
+List FTS Templates:
+-------------------
+SELECT tmplname, tmplinit FROM pg_ts_template;
+
+List Tablespaces:
+-----------------
+SELECT spcname, spclocation, spcowner FROM pg_tablespace;

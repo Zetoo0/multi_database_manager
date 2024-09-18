@@ -79,9 +79,8 @@ struct DatabaseConnection{
 
 #[tauri::command]
 async fn init_database(data:DatabaseConnection) -> Result<String, String> {
-  println!("Itt egyáltalán vagyok?");
   let rb = rbatis::RBatis::new();
-  match DriverType::from_str("postgresql"){
+  match DriverType::from_str(&data.driver_type){
     Ok(variante) => {
       let url = format!("{}://{}:@{}:{}",variante.to_string(),data.username,data.server,data.port);
       let res = rb.link(get_driver(variante), &url);
