@@ -6,50 +6,21 @@
 pub mod database;
 pub mod metadata;
 
-use std::{fmt::format, future::IntoFuture, str::FromStr};
+use std::{borrow::Borrow, fmt::format, future::IntoFuture, str::FromStr};
+use metadata::{repository::DatabaseRepository, table};
 use rbdc::db::{Driver,Connection,ConnectOptions,Row,Placeholder};
 use rbdc_mssql::MssqlDriver;
 use rbdc_mysql::MysqlDriver;
-use rbdc_pg::{PgDriver};
+use rbdc_pg::{types::decode::Decode, value::PgValue, PgDriver};
 use rbdc_sqlite::SqliteDriver;
 use rbatis::{executor::{Executor, RBatisRef}, Error}; 
+use rbs::Value;
 use serde::{Serialize,Deserialize}; 
-use serde_json::Value;
+use serde_json::Value as SerdeValue;
 use strum_macros::{Display, EnumString, ToString};
 
 use crate::metadata::repository::PostgresRepository;
 
-struct Table{
-
-}
-
-trait Lister {
-  fn list_tables(&self)->Vec<Table>{
-    vec![]
-  }
-  fn list_views(&self);
-  fn list_stored_procedures(&self);
-  fn list_columns(&self,table:&str);
-}
-
-/* 
-impl Lister for rbdc_pg::PgDriver{
-  fn list_tables(&self)->Vec<Table> {
-      
-  }
-
-  fn list_columns(&self,table:&str) {
-      
-  }
-
-  fn list_stored_procedures(&self) {
-
-  }
-
-  fn list_views(&self) {
-      
-  }
-}*/
 
 
 #[derive(Serialize,Deserialize,Debug,EnumString,Display)]
@@ -82,6 +53,16 @@ struct DatabaseConnection{
   driver_type: String,
 }
 
+#[derive(Serialize,Deserialize,Debug)]
+pub struct Database{
+    pub name: String,
+    /*pub functions: Option<Vec<Function>>,
+    pub procedures: Option<Vec<Procedure>>,
+    pub roles: Option<Vec<Role>>,
+    pub tables: Option<Vec<Table>>,
+    pub views: Option<Vec<View>>*/
+}
+
 #[tauri::command]
 async fn init_database(data:DatabaseConnection) -> Result<String, String> {
   let rb = rbatis::RBatis::new();
@@ -102,14 +83,22 @@ async fn init_database(data:DatabaseConnection) -> Result<String, String> {
 #[tauri::command]
 async fn repo_test() -> Result<String,String> {
   let rb = rbatis::RBatis::new();
-  let postgres = PostgresRepository::PostgresRepository::new(&rb);
+  let postgres = PostgresRepository::PostgresRepository::new();
+  let databases = postgres.get_databases().await.unwrap();
+  let mut tables:Value = Value::Null;
+  for db_name in databases{
+    for dab in db_name.1{
+      tables = postgres.get_tables(&dab.1.as_str().unwrap()).await.unwrap();
+      println!("Database: {:?}",dab.1.as_str());
+      println!("Tables: {:?}",tables);
+    }
+  }
   Ok(String::from("Successfully conneced!"))
 }
 
 fn main() {
     tauri::Builder::default()
-    .invoke_handler(tauri::generate_handler![init_database])
+    .invoke_handler(tauri::generate_handler![init_database,repo_test])
     .run(tauri::generate_context!())    
     .expect("error while running tauri application");
-
 }

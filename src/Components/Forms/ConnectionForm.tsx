@@ -22,14 +22,6 @@
         const [password, setPassword] = useState('');
         const [conn,setConn] = useState<DatabaseConnection | null>();
 
-        const myStruct: DatabaseConnection = {
-            port:"string",
-            server:"string",
-            username:"string",
-            password:"string",
-            driver_type:"string",
-          };
-
         async function submitConnection() {
             console.log("Geci");  
             const connectionData:DatabaseConnection = {
@@ -37,7 +29,7 @@
             };
             console.log(connectionData);
             try {
-                await invoke('init_database', { data: connectionData }).then((resp) => alert(resp));
+                await invoke('repo_test').then((resp) => alert(resp));
               } catch (error) {
                 alert('Error sending struct:');
               }

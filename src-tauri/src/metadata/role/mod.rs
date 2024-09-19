@@ -8,6 +8,5 @@ pub struct Role{
     pub is_create_role: Option<bool>,
     pub is_create_db: Option<bool>,
     pub can_login: Option<bool>,
-    pub is_replication: Option<bool>,
-    
+    pub is_replication: Option<bool>,   
 }
