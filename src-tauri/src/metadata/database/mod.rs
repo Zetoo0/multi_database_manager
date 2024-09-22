@@ -1,11 +1,18 @@
-use serde::{Serialize,Deserialize};
+use std::collections::HashMap;
 
-#[derive(Serialize,Deserialize,Debug)]
+use serde::{Serialize,Deserialize};
+use crate::metadata::{column::Column,constraint::Constraint,foreign_data_wrapper::ForeignDataWrapper,function::Function,lock::Lock,materalized_view::MateralizedView,procedure::Procedure,table::Table,trigger::Trigger,user::User,utype::Type,view::View};
+
+#[derive(Serialize,Deserialize,Debug,Clone)]
 pub struct Database{
     pub name: String,
-    /*pub functions: Option<Vec<Function>>,
-    pub procedures: Option<Vec<Procedure>>,
-    pub roles: Option<Vec<Role>>,
-    pub tables: Option<Vec<Table>>,
-    pub views: Option<Vec<View>>*/
+    pub functions: Option<HashMap<String,Function>>,
+    pub procedures: Option<HashMap<String,Procedure>>,
+    pub tables: Option<HashMap<String, Table>>,
+    pub views: Option<HashMap<String, View>>,
+    pub constraints: Option<HashMap<String, Constraint>>,
+    pub foreign_data_wrappers: Option<HashMap<String, ForeignDataWrapper>>,
+    pub locks: Option<HashMap<String, Lock>>,
+    pub triggers: Option<HashMap<String, Trigger>>,
+    pub types: Option<HashMap<String, Type>>
 }

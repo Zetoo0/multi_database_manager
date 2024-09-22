@@ -1,9 +1,9 @@
 use serde::{Serialize,Deserialize};
 
-#[derive(Serialize,Deserialize,Debug)]
+#[derive(Serialize,Deserialize,Debug,Clone)]
 pub struct Column{
     pub name: String,
     pub data_type: Option<String>,
     pub is_nullable: Option<bool>,
-    pub default_value: Option<Sting>
+    pub default_value: Option<String>
 }

@@ -1,3 +1,14 @@
 pub mod repository;
 pub mod table;
 pub mod database;
+pub mod trigger;
+pub mod column;
+pub mod constraint;
+pub mod foreign_data_wrapper;
+pub mod function;
+pub mod lock;
+pub mod procedure;
+pub mod user;
+pub mod view;
+pub mod materalized_view;
+pub mod utype;

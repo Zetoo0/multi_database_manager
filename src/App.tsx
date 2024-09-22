@@ -9,74 +9,125 @@ import { Database } from './Components/TreeNode.tsx';
 const sampleData = [
   {
     name: "Database1",
-    type: "database",
     children: [
       {
         name: "Tables",
-        type: "folder",
         children: [
           {
             name: "Users",
-            type: "table",
             children: [
-              { name: "id", type: "column" },
-              { name: "username", type: "column" },
+              { name: "id" },
+              { name: "username" },
+              { name: "password" },
             ],
           },
           {
             name: "Orders",
-            type: "table",
             children: [
-              { name: "order_id", type: "column" },
-              { name: "user_id", type: "column" },
+              { name: "order_id" },
+              { name: "user_id" },
+              { name: "total_amount" },
             ],
           },
         ],
       },
       {
         name: "Views",
-        type: "folder",
-        children: [{ name: "UserView", type: "view" }],
+        children: [{ name: "UserView" }],
       },
       {
         name: "Stored Procedures",
-        type: "folder",
-        children: [{ name: "GetUserOrders", type: "stored_procedure" }],
+        children: [{ name: "GetUserOrders" }],
       },
       {
         name: "Functions",
-        type: "folder",
-        children: [{ name: "CalculateTax", type: "function" }],
+        children: [{ name: "CalculateTax" }],
+      },
+      {
+        name: "Indexes",
+        children: [
+          { name: "idx_users_username" },
+        ],
+      },
+      {
+        name: "Triggers",
+        children: [
+          { name: "before_insert_users" },
+        ],
+      },
+      {
+        name: "Roles and Users",
+        children: [
+          { name: "admin" },
+          { name: "editor" },
+        ],
+      },
+      {
+        name: "Languages",
+        children: [
+          { name: "plpgsql" },
+        ],
+      },
+      {
+        name: "Constraints",
+        children: [
+          { name: "chk_users_username" },
+        ],
       },
     ],
-  },
-  {
+  },  {
     name: "Database2",
-    type: "database",
     children: [
       {
         name: "Tables",
-        type: "folder",
         children: [
-          {
-            name: "Products",
-            type: "table",
-            children: [
-              { name: "product_id", type: "column" },
-              { name: "price", type: "column" },
-            ],
-          },
         ],
       },
       {
         name: "Views",
-        type: "folder",
-        children: [{ name: "ProductView", type: "view" }],
+        children: [],
+      },
+      {
+        name: "Stored Procedures",
+        children: [],
+      },
+      {
+        name: "Functions",
+        children: [],
+      },
+      {
+        name: "Indexes",
+        children: [
+          
+        ],
+      },
+      {
+        name: "Triggers",
+        children: [
+        
+        ],
+      },
+      {
+        name: "Roles and Users",
+        children: [
+        ],
+      },
+      {
+        name: "Languages",
+        children: [
+        
+        ],
+      },
+      {
+        name: "Constraints",
+        children: [
+        
+        ],
       },
     ],
   },
 ];
-
+    
 
 function App() {
   return (

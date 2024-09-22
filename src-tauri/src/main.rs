@@ -93,8 +93,10 @@ async fn repo_test() -> Result<String,String> {
   for db_name in databases{
     for dab in db_name.1{
       tables = postgres.get_tables(&dab.1.as_str().unwrap()).await.unwrap();
+      println!("Tablet len? {:?}",tables);
       println!("Database: {:?}",dab.1.as_str().unwrap());
       for table in tables{
+        println!("tables doko?");
         for t in table.1{
           println!("Table: {:?}",t.1.as_str().unwrap());
           columns = postgres.get_columns(dab.1.as_str().unwrap(), t.1.as_str().unwrap()).await.unwrap();
@@ -118,8 +120,10 @@ async fn repo_test() -> Result<String,String> {
       println!("Foreign Data Wrappers: {:?}", postgres.get_foreign_data_wrappers(&dab.1.as_str().unwrap()).await.unwrap());
       println!("Constraints: {:?}",postgres.get_constraints(&dab.1.as_str().unwrap()).await.unwrap());
       println!("Locks: {:?}", postgres.get_locks(&dab.1.as_str().unwrap()).await.unwrap());
+      println!("-------------------------------------------------");
     }
   }
+  println!("{:?}",postgres.databases.lock().unwrap());
   Ok(String::from("Successfully conneced!"))
 }
 

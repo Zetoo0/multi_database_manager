@@ -37,7 +37,7 @@
         }
 
         return(
-            <div className="connection-form bg-grey p-6 rounded-lg shadow-md max-w-md mx-auto">
+            <div className="connection-form bg-black p-6 rounded-lg shadow-lg max-w-md mx-auto">
                 <h2 className="text-2xl font-semibold text-beige-800 mb-4">Database Connection</h2>
                 <form onSubmit={(e) => {e.preventDefault()  ;submitConnection()} } className="space-y-4">
                     <div>
