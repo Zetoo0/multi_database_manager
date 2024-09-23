@@ -112,13 +112,13 @@ async fn repo_test() -> Result<String,String> {
       println!("Roles and users: {}",postgres.get_roles_and_users(&dab.1.as_str().unwrap()).await.unwrap());
       println!("languages: {:?}",postgres.get_languages(&dab.1.as_str().unwrap()).await.unwrap());
       println!("Schemas: {:?}",postgres.get_schemas(&dab.1.as_str().unwrap()).await.unwrap());
-      println!("Indexes: {:?}",postgres.get_indexes(&dab.1.as_str().unwrap()).await.unwrap());
+      //println!("Indexes: {:?}",postgres.get_indexes(&dab.1.as_str().unwrap()).await.unwrap());
       println!("Active Sessions: {:?}",postgres.get_active_sessions().await.unwrap());
       println!("Materalized Views: {:?}",postgres.get_materalized_views(&dab.1.as_str().unwrap()).await.unwrap());
       println!("Event Triggers: {:?}", postgres.get_event_triggers(&dab.1.as_str().unwrap()).await.unwrap());
       println!("Types: {:?}", postgres.get_types(&dab.1.as_str().unwrap()).await.unwrap());
-      println!("Foreign Data Wrappers: {:?}", postgres.get_foreign_data_wrappers(&dab.1.as_str().unwrap()).await.unwrap());
-      println!("Constraints: {:?}",postgres.get_constraints(&dab.1.as_str().unwrap()).await.unwrap());
+      //println!("Foreign Data Wrappers: {:?}", postgres.get_foreign_data_wrappers(&dab.1.as_str().unwrap()).await.unwrap());
+     // println!("Constraints: {:?}",postgres.get_constraints(&dab.1.as_str().unwrap()).await.unwrap());
       println!("Locks: {:?}", postgres.get_locks(&dab.1.as_str().unwrap()).await.unwrap());
       println!("-------------------------------------------------");
     }

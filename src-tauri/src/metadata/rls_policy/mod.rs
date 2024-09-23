@@ -1,6 +1,7 @@
 use serde::{Serialize,Deserialize};
 
 #[derive(Serialize,Deserialize,Debug,Clone)]
-pub struct Trigger{
-    pub name:String
-}       
+pub struct RlsPolicy{
+    pub name: String,
+    pub command: String,
+}

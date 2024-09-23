@@ -1,4 +1,10 @@
-    use crate::metadata::{self, repository::DatabaseRepository, table::Table};
+    use crate::metadata::{function::Function, materalized_view::MateralizedView, procedure::Procedure, repository::DatabaseRepository, table:: Table, trigger, view::View};
+    use crate::metadata::rls_policy::RlsPolicy;
+    use crate::metadata::rule::Rule;
+    use crate::metadata::constraint::Constraint;
+    use crate::metadata::sequence::Sequence;
+    use crate::metadata::aggregate::Aggregate;
+    use crate::metadata::catalog::Catalog;
     use fast_pool::Pool;
     use rbatis::{executor::RBatisRef, DefaultPool};
     use rbdc::db::{self, ConnectOptions};
@@ -6,7 +12,7 @@
     use rbdc_pg::connection::PgConnection;
     use rbdc_pg::*;
     use rbs::to_value;
-    use std::{collections::HashMap, future::Future, result, sync::Mutex};
+    use std::{borrow::Borrow, collections::HashMap, future::Future, ops::Deref, result, sync::Mutex};
     use rbdc::Error;
     use rbs::Value;
     use serde::{Serialize,Deserialize};
@@ -26,7 +32,7 @@
         pub fn new() -> Self{
             let rb_map = Arc::new(Mutex::new(HashMap::new()));
             let databases = Arc::new(Mutex::new(HashMap::new()));
-            let base_url = String::from("postgresql://postgres:@localhost:5432/postgres");
+            let base_url = String::from("postgresql://mzeteny:zetou123@localhost:5432/postgres");
             return PostgresRepository{ rb_map, base_url, databases};
         }
 
@@ -36,27 +42,29 @@
             let mut rb_map = self.rb_map.lock().unwrap();
             if !rb_map.contains_key(db_name){
                 log::info!("new pool adding... database: {:?}",db_name);
-                println!("new pool adding... database: {:?}",db_name);
                 let rb = Arc::new(rbatis::RBatis::new());
                 let _ = rb.init(PgDriver {}, url);
+           
                 rb_map.insert(db_name.to_string(),rb);
 
                 let mut databases = self.databases.lock().unwrap();
                 let db_node = Database{
                     name : db_name.to_string(),
                     tables : Some(HashMap::new()),
-                    functions : Some(HashMap::new()),
-                    procedures : Some(HashMap::new()),
+                    functions : Some(HashMap::new()),                        procedures : Some(HashMap::new()),
                     views : Some(HashMap::new()),
                     constraints : Some(HashMap::new()),
                     foreign_data_wrappers : Some(HashMap::new()),
                     locks : Some(HashMap::new()),
                     types : Some(HashMap::new()),
                     triggers : Some(HashMap::new()),
+                    aggregates : Some(HashMap::new()),
+                    materalized_views : Some(HashMap::new()),
+                    catalogs : Some(HashMap::new()),
+                    sequences : Some(HashMap::new()),
                 };
                 databases.insert(db_name.to_string(), db_node);
             }
-
             Ok(())
         }
 
@@ -75,9 +83,10 @@
 
     impl DatabaseRepository for PostgresRepository{
 
+        ///Get all databases
         async fn get_databases(&self)-> Result<Value,rbdc::Error> {
             log::info!("PgRepository: Get databases");
-            let url = "postgresql://postgres:@localhost:5432/postgres";
+            let url = "postgresql://mzeteny:zetou123@localhost:5432/postgres";
             let _ = self.connect("postgres", url).await;
             let rb = match self.get_db_rb("postgres").await{
                 Some(rb) => rb,
@@ -91,93 +100,121 @@
             Ok(result)
         }
 
+        ///Get all tables in the database
         async fn get_tables(&self, db_name:&str)-> Result<Value,rbdc::Error> {
-            let url = "postgresql://postgres:@localhost:5432/".to_string()+db_name;
+            let url = "postgresql://mzeteny:zetou123@localhost:5432/".to_string()+db_name;
             let _ = self.connect(db_name, url.as_str()).await;
             let rb = match self.get_db_rb(db_name).await{
                 Some(rb) => rb,
-                None => return Err(rbdc::Error::from("database not found")),
-            };        //self.rb.link(PgDriver {}, url.as_str());
+                None => return Err(rbdc::Error::from(format!("FATAL:  database \"{}\" does not exist", db_name))),            };        //self.rb.link(PgDriver {}, url.as_str());
             let _sql = "SELECT table_name
             FROM information_schema.tables
             WHERE table_schema = 'public';";
-            let result = rb.query(_sql,vec![]).await.unwrap();            
+            let result = rb.query(_sql,vec![]).await.unwrap();
             if let Some(tables) = result.as_array(){
                 let mut db_struct = self.databases.lock().unwrap();
                 if let Some(node) = db_struct.get_mut(db_name){
                     println!("TABLES: {:?}", tables);
                     let table_map = node.tables.get_or_insert_with(HashMap::new);
+                    
                     for table in tables{
-                        for table_name in table{
-                            if let Some(table_namae) = table_name.1.as_str(){      
-                                let tb_node = Table{
-                                    name : table_namae.to_string(), 
-                                    columns : Some(HashMap::new()),
-                                };
-                                table_map.insert(table_namae.to_string(), tb_node);
-                                //table_map.as_mut().expect("asd").insert(table_namae.to_string(), tb_node);
-                            }
-                            //table_map.insert("product".to_string(), Table{name:"product".to_string(),columns:Some(HashMap::new())});
-                        }
+                        if let Value::Map(tablemap) = table{
+                            let table_name = tablemap.0.get(&Value::String("table_name".to_string())).and_then(|v| v.as_str()).unwrap_or_default();
                         
-                    }   
+                            let tb_node = Table{
+                                name : table_name.to_string(), 
+                                columns : Some(HashMap::new()),
+                                constraints: Some(HashMap::new()),
+                                indexes: Some(HashMap::new()),
+                                triggers: Some(HashMap::new()),
+                                rules: Some(HashMap::new()),
+                                rls_policies: Some(HashMap::new()),
+                            };
+                            table_map.insert(table_name.to_string(), tb_node);
+                        }
+                    }
                 }
             }
             Ok(result)
         }
-
+        ///Get all columns in the table
         async fn get_columns(&self,db_name:&str,table_name:&str)-> Result<Value,rbdc::Error> {
-            let url = "postgresql://postgres:@localhost:5432/".to_string()+db_name;
+            let url = "postgresql://mzeteny:zetou123@localhost:5432/".to_string()+db_name;
             let _ = self.connect(db_name,url.as_str()).await;
             let rb = match self.get_db_rb(db_name).await{
                 Some(rb) => rb,
                 None => return Err(rbdc::Error::from("database not found")),
             };       
-            let _sql = "SELECT column_name
+            let _sql = "SELECT column_name,data_type,is_nullable,column_default
             FROM information_schema.columns
             WHERE table_name = ?;";
-            //Ok(self.rb.query(_sql,vec![to_value!(table_name)]).await?)
+            
             let result = rb.query(_sql, vec![Value::String(table_name.to_string())]).await.unwrap();
+            /*let col2 = result.as_array()?;
+            let mut db_struct2 = self.databases.lock().unwrap();
+            let node2 = db_struct2.get_mut(db_name)?;*/
+            
             if let Some(cols) = result.as_array(){
                 let mut db_struct = self.databases.lock().unwrap();
                 if let Some(node) = db_struct.get_mut(db_name){
                     let _tb_struct = node.tables.as_mut().expect("Expected some table").get_mut(table_name);
-                    let columns_map = _tb_struct.expect("msg").columns.get_or_insert_with(HashMap::new);
+                    let columns_map = _tb_struct.expect("Expected some columns").columns.get_or_insert_with(HashMap::new);
                     for col in cols{
-                        for col_name in col{
-                            println!("KOLOS: {:?}", col_name.1);    
+                        if let Value::Map(colmap) = col{
+                            let col_name = colmap.0.get(&Value::String("column_name".to_string())).and_then(|v| v.as_str()).unwrap_or_default();
+                            let data_type = colmap.0.get(&Value::String("data_type".to_string())).and_then(|v| v.as_str()).unwrap_or_default();
+                            let is_nullable = colmap.0.get(&Value::String("is_nullable".to_string())).and_then(|v| v.as_bool()).unwrap_or_default();
+                            let column_default = colmap.0.get(&Value::String("column_default".to_string())).and_then(|v| v.as_str()).unwrap_or_default();
+                            
                             let _col_node = crate::metadata::column::Column{
-                                name : col_name.1.to_string(),
-                                data_type: Some(String::from("value")),     
-                                is_nullable: Some(true),
-                                default_value: Some(String::from("Anzas")),
+                                name : String::from(col_name),//col_name.1.to_string(),
+                                data_type: Some(String::from(data_type)),     
+                                is_nullable: Some(is_nullable),
+                                default_value: Some(String::from(column_default)),
                             };
-                            columns_map.insert(col_name.1.to_string(), _col_node);
+                            columns_map.insert(col_name.to_string(), _col_node);
                         }
                     }
-
                 }
             }
-            
             Ok(result)
         }
 
         async fn get_views(&self,db_name:&str)-> Result<Value,rbdc::Error> {
-            let url = "postgresql://postgres:@localhost:5432/".to_string()+db_name;
+            let url = "postgresql://mzeteny:zetou123@localhost:5432/".to_string()+db_name;
             self.connect(db_name,url.as_str()).await;
             let rb = match self.get_db_rb(db_name).await{
                 Some(rb) => rb,
                 None => return Err(rbdc::Error::from("database not found")),
             };
-        let _sql = "SELECT table_name
+            
+            let _sql = "SELECT table_name
             FROM information_schema.views
             WHERE table_schema = 'public';";
             let result = rb.query(_sql, vec![]).await.unwrap();
+            
+            if let Some(views) = result.as_array(){
+                let mut db_struct = self.databases.lock().unwrap();
+                if let Some(node) = db_struct.get_mut(db_name){
+                    let view_map = node.views.get_or_insert_with(HashMap::new);
+                    for view in views{
+                        if let Value::Map(viewmap) = view{
+                            let view_name = viewmap.0.get(&Value::String("table_name".to_string())).and_then(|v| v.as_str()).unwrap_or_default();
+                            let view_node = View{
+                                name : view_name.to_string(),
+                                definition : "Yare Yare View Desu".to_string(),
+                            };
+                            view_map.insert(view_name.to_string(), view_node);
+                        }
+                    }
+                }
+            }
+
             Ok(result)
         }
 
         async fn get_stored_procedures(&self,db_name:&str)-> Result<Value,rbdc::Error> {
-            let url = "postgresql://postgres:@localhost:5432/".to_string()+db_name;
+            let url = "postgresql://mzeteny:zetou123@localhost:5432/".to_string()+db_name;
             self.connect(db_name,url.as_str()).await;
             let rb = match self.get_db_rb(db_name).await{
                 Some(rb) => rb,
@@ -187,11 +224,28 @@
             FROM information_schema.routines
             WHERE routine_type = 'PROCEDURE' AND specific_schema = 'public';";
             let result = rb.query(_sql, vec![]).await.unwrap();
+
+            if let Some(stored_procedures) = result.as_array(){
+                let mut db_struct = self.databases.lock().unwrap();
+                if let Some(node) = db_struct.get_mut(db_name){
+                    let stored_procedure_map = node.procedures.get_or_insert_with(HashMap::new);
+                    for stored_procedure in stored_procedures{
+                        if let Value::Map(stored_proceduremap) = stored_procedure{
+                            let stored_procedure_name = stored_proceduremap.0.get(&Value::String("routine_name".to_string())).and_then(|v| v.as_str()).unwrap_or_default();
+                            let stored_procedure_node = Procedure{
+                                name : stored_procedure_name.to_string(),
+                                definition : "Yare Yare Stored Procedure Desu".to_string(),
+                            };
+                            stored_procedure_map.insert(stored_procedure_name.to_string(), stored_procedure_node);
+                        }
+                    }
+                }
+            }
             Ok(result)
         }
 
         async fn get_functions(&self,db_name:&str)-> Result<Value,rbdc::Error> {
-            let url = "postgresql://postgres:@localhost:5432/".to_string()+db_name;
+            let url = "postgresql://mzeteny:zetou123@localhost:5432/".to_string()+db_name;
             self.connect(db_name,url.as_str()).await;
             let rb = match self.get_db_rb(db_name).await{
                 Some(rb) => rb,
@@ -209,11 +263,27 @@
                 function_schema,
                 function_name;";
             let result = rb.query(_sql, vec![]).await.unwrap();
+
+            if let Some(functions) = result.as_array(){
+                let mut db_struct = self.databases.lock().unwrap();
+                if let Some(node) = db_struct.get_mut(db_name){
+                    let function_map = node.functions.get_or_insert_with(HashMap::new);
+                    for function in functions{
+                        if let Value::Map(functionmap) = function{
+                            let function_name = functionmap.0.get(&Value::String("function_name".to_string())).and_then(|v| v.as_str()).unwrap_or_default();
+                            let function_node = Function{
+                                name : function_name.to_string(),
+                                definition : "Yare Yare Function Desu".to_string(),
+                            };
+                        }
+                    }
+                }
+            }
             Ok(result)
         }
 
         async fn get_trigger_functions(&self,db_name:&str)-> Result<Value,rbdc::Error> {
-            let url = "postgresql://postgres:@localhost:5432/".to_string()+db_name;
+            let url = "postgresql://mzeteny:zetou123@localhost:5432/".to_string()+db_name;
             self.connect(db_name,url.as_str()).await;
             let rb = match self.get_db_rb(db_name).await{
                 Some(rb) => rb,
@@ -222,11 +292,26 @@
             let _sql =  "SELECT tgname 
             FROM pg_trigger;";
             let result = rb.query(_sql, vec![]).await.unwrap();
+            if let Some(triggers) = result.as_array(){
+                let mut db_struct = self.databases.lock().unwrap();
+                if let Some(node) = db_struct.get_mut(db_name){
+                    let trigger_map = node.triggers.get_or_insert_with(HashMap::new);
+                    for trigger in triggers{
+                        if let Value::Map(triggermap) = trigger{
+                            let trigger_name = triggermap.0.get(&Value::String("tgname".to_string())).and_then(|v| v.as_str()).unwrap_or_default();
+                            let trigger_node = trigger::Trigger{
+                                name : trigger_name.to_string(),
+                            };
+                            trigger_map.insert(trigger_name.to_string(), trigger_node);
+                        }
+                    }
+                }
+            }
             Ok(result)
         }
 
         async fn get_event_triggers(&self,db_name:&str)-> Result<Value,rbdc::Error> {
-            let url = "postgresql://postgres:@localhost:5432/".to_string()+db_name;
+            let url = "postgresql://mzeteny:zetou123@localhost:5432/".to_string()+db_name;
             self.connect(db_name,url.as_str()).await;
             let rb = match self.get_db_rb(db_name).await{
                 Some(rb) => rb,
@@ -235,12 +320,29 @@
             let _sql = "SELECT evtname 
             FROM pg_event_trigger;";
             let result = rb.query(_sql, vec![]).await.unwrap();
+
+            /*if let some(evt_triggers) = result.as_array(){
+                let mut db_struct = self.databases.lock().unwrap();
+                if let Some(node) = db_struct.get_mut(db_name){
+                    let evt_trigger_map = node.event_triggers.get_or_insert_with(HashMap::new);
+                    for evt_trigger in evt_triggers{
+                        if let Value::Map(evt_triggermap) = evt_trigger{
+                            let evt_trigger_name = evt_triggermap.0.get(&Value::String("evtname".to_string())).and_then(|v| v.as_str()).unwrap_or_default();
+                            let evt_trigger_node = EventTrigger{
+                                name : evt_trigger_name.to_string(),
+                            };
+                            evt_trigger_map.insert(evt_trigger_name.to_string(), evt_trigger_node);
+                        }
+                    }
+                }
+            }*/
+
             Ok(result)
 
         }
 
         async fn get_aggregates(&self,db_name:&str)-> Result<Value,rbdc::Error> {
-            let url = "postgresql://postgres:@localhost:5432/".to_string()+db_name;
+            let url = "postgresql://mzeteny:zetou123@localhost:5432/".to_string()+db_name;
             self.connect(db_name,url.as_str()).await;
             let rb = match self.get_db_rb(db_name).await{
                 Some(rb) => rb,
@@ -248,21 +350,54 @@
             };
             let _sql = "SELECT proname 
             FROM pg_proc 
-            WHERE proisagg = true;";
+            WHERE prokind='a';";
             let result = rb.query(_sql, vec![]).await.unwrap();
+            if let Some(aggregates) = result.as_array(){
+                let mut db_struct = self.databases.lock().unwrap();
+                if let Some(node) = db_struct.get_mut(db_name){
+                    let aggregate_map = node.aggregates.get_or_insert_with(HashMap::new);
+                    for aggregate in aggregates{
+                        if let Value::Map(aggregatemap) = aggregate{
+                            let aggregate_name = aggregatemap.0.get(&Value::String("proname".to_string())).and_then(|v| v.as_str()).unwrap_or_default();
+                            let aggregate_node = Aggregate{
+                                name : aggregate_name.to_string(),
+                            };
+                            aggregate_map.insert(aggregate_name.to_string(), aggregate_node);
+                        }
+                    }
+                }
+            }
             Ok(result)
         }
 
         async fn get_materalized_views(&self,db_name:&str)-> Result<Value,rbdc::Error> {
-            let url = "postgresql://postgres:@localhost:5432/".to_string()+db_name;
+            let url = "postgresql://mzeteny:zetou123@localhost:5432/".to_string()+db_name;
             self.connect(db_name,url.as_str()).await;
             let rb = match self.get_db_rb(db_name).await{
                 Some(rb) => rb,
                 None => return Err(rbdc::Error::from("database not found")),
             };
-            let _sql = "SELECT matviewname 
+            let _sql = "SELECT matviewname,definition
             FROM pg_matviews;";
             let result = rb.query(_sql, vec![]).await.unwrap();
+
+            if let Some(matview) = result.as_array(){
+                let mut db_struct = self.databases.lock().unwrap();
+                if let Some(node) = db_struct.get_mut(db_name){
+                    let matview_map = node.materalized_views.get_or_insert_with(HashMap::new);
+                    for matview in matview{
+                        if let Value::Map(matviewmap) = matview{
+                            let matview_name = matviewmap.0.get(&Value::String("matviewname".to_string())).and_then(|v| v.as_str()).unwrap_or_default();
+                            let matview_def = matviewmap.0.get(&Value::String("definition".to_string())).and_then(|v| v.as_str()).unwrap_or_default();
+                            let matview_node = MateralizedView{
+                                name : matview_name.to_string(),
+                                definition : matview_def.to_string(),
+                            };
+                            matview_map.insert(matview_name.to_string(), matview_node);
+                        }
+                    }
+                }
+            }
             Ok(result)
         }
 
@@ -283,7 +418,7 @@
             ORDER BY type_category, type_name;
             
             */
-            let url = "postgresql://postgres:@localhost:5432/".to_string()+db_name;
+            let url = "postgresql://mzeteny:zetou123@localhost:5432/".to_string()+db_name;
             self.connect(db_name,url.as_str()).await;
             let rb = match self.get_db_rb(db_name).await{
                 Some(rb) => rb,
@@ -297,7 +432,7 @@
         }
 
         async fn get_languages(&self,db_name:&str)-> Result<Value,rbdc::Error> {
-            let url = "postgresql://postgres:@localhost:5432/".to_string()+db_name;
+            let url = "postgresql://mzeteny:zetou123@localhost:5432/".to_string()+db_name;
             self.connect(db_name,url.as_str()).await;
             let rb = match self.get_db_rb(db_name).await{
                 Some(rb) => rb,
@@ -306,12 +441,13 @@
             let _sql ="SELECT lanname 
             FROM pg_language;";
             let result = rb.query(_sql, vec![]).await.unwrap();
+            
             Ok(result)
 
         }
 
         async fn get_catalogs(&self,db_name:&str)-> Result<Value,rbdc::Error> {
-            let url = "postgresql://postgres:@localhost:5432/".to_string()+db_name;
+            let url = "postgresql://mzeteny:zetou123@localhost:5432/".to_string()+db_name;
             self.connect(db_name,url.as_str()).await;
             let rb = match self.get_db_rb(db_name).await{
                 Some(rb) => rb,
@@ -322,11 +458,29 @@
                             WHERE nspname IN ('pg_catalog', 'information_schema')
                             ORDER BY nspname;";
             let result = rb.query(_sql, vec![]).await.unwrap();
+
+            if let Some(catalogs) = result.as_array(){
+                let mut db_struct = self.databases.lock().unwrap();
+                if let Some(node) = db_struct.get_mut(db_name){
+                    let catalog_map = node.catalogs.get_or_insert_with(HashMap::new);
+                    for catalog in catalogs{
+                        if let Value::Map(catalogmap) = catalog{
+                            let catalog_name = catalogmap.0.get(&Value::String("catalog_name".to_string())).and_then(|v| v.as_str()).unwrap_or_default();
+                            
+                            let catalog_node = Catalog{
+                                name : catalog_name.to_string(),
+                            };
+                            
+                            catalog_map.insert(catalog_name.to_string(), Catalog);
+                        }
+                    }
+                }
+            }
             Ok(result)
         }
 
         async fn get_foreign_data_wrappers(&self,db_name:&str)-> Result<Value,rbdc::Error> {
-            let url = "postgresql://postgres:@localhost:5432/".to_string()+db_name;
+            let url = "postgresql://mzeteny:zetou123@localhost:5432/".to_string()+db_name;
             self.connect(db_name,url.as_str()).await;
             let rb = match self.get_db_rb(db_name).await{
                 Some(rb) => rb,
@@ -335,12 +489,33 @@
             let _sql = "SELECT fdwname 
             FROM pg_foreign_data_wrapper;";
             let result = rb.query(_sql, vec![]).await.unwrap();
+
+            if let Some(foreign_data_wrappers) = result.as_array(){
+                let mut db_struct = self.databases.lock().unwrap();
+                if let Some(node) = db_struct.get_mut(db_name){
+                    let foreign_data_wrapper_map = node.foreign_data_wrappers.get_or_insert_with(HashMap::new);
+                    for foreign_data_wrapper in foreign_data_wrappers{
+                        if let Value::Map(fdw_map) = foreign_data_wrapper{
+                            let foreign_data_wrapper_name = fdw_map.0.get(&Value::String("fdwname".to_string())).and_then(|v| v.as_str()).unwrap_or_default();
+                            
+                            let foreign_data_wrapper_node = crate::metadata::foreign_data_wrapper::ForeignDataWrapper{
+                                name : foreign_data_wrapper_name.to_string(),
+                            };
+                            
+                            foreign_data_wrapper_map.insert(foreign_data_wrapper_name.to_string(), foreign_data_wrapper_node);
+                        }
+                    }
+                }
+            }
+
             Ok(result)
 
         }
 
+        //TODO SELECT table_name FROM information_schema.tables WHERE table_schema = '?'; catalogobjects(?)
+
         async fn get_schemas(&self,db_name:&str)-> Result<Value,rbdc::Error> {
-            let url = "postgresql://postgres:@localhost:5432/".to_string()+db_name;
+            let url = "postgresql://mzeteny:zetou123@localhost:5432/".to_string()+db_name;
             self.connect(db_name,url.as_str()).await;
             let rb = match self.get_db_rb(db_name).await{
                 Some(rb) => rb,
@@ -353,8 +528,8 @@
             Ok(result)
         }
 
-        async fn get_indexes(&self,db_name:&str)-> Result<Value,rbdc::Error> {
-            let url = "postgresql://postgres:@localhost:5432/".to_string()+db_name;
+        async fn get_indexes(&self,db_name:&str,table_name:&str)-> Result<Value,rbdc::Error> {
+            let url = "postgresql://mzeteny:zetou123@localhost:5432/".to_string()+db_name;
             self.connect(db_name,url.as_str()).await;
             let rb = match self.get_db_rb(db_name).await{
                 Some(rb) => rb,
@@ -364,12 +539,32 @@
             FROM pg_indexes 
             WHERE schemaname = 'public';";
             let result = rb.query(_sql, vec![]).await.unwrap();
-            Ok(result)
+            
+            if let Some(indexes) = result.as_array(){
+                let mut db_struct = self.databases.lock().unwrap();
+                if let Some(node) = db_struct.get_mut(db_name){
+                    let _tb_struct = node.tables.as_mut().expect("Expected some table").get_mut(table_name);
+                    let index_map = _tb_struct.expect("Expected some index").indexes.get_or_insert_with(HashMap::new);
+                    for index in indexes{
+                        if let Value::Map(indexmap) = index{
+                            let index_name = indexmap.0.get(&Value::String("indexname".to_string())).and_then(|v| v.as_str()).unwrap_or_default();
+                            let index_definition = indexmap.0.get(&Value::String("indexdef".to_string())).and_then(|v| v.as_str()).unwrap_or_default();
+                            
+                            let index_node = crate::metadata::index::Index{
+                                name : String::from(index_name),
+                                definition: Some(String::from(index_definition)),     
+                            };
+                            index_map.insert(index_name.to_string(), index_node);
+                        }
+                    }
+                }
+            }
 
+            Ok(result)
         }
 
-        async fn get_constraints(&self,db_name:&str)-> Result<Value,rbdc::Error> {
-            let url = "postgresql://postgres:@localhost:5432/".to_string()+db_name;
+        async fn get_constraints(&self,db_name:&str,table_name:&str)-> Result<Value,rbdc::Error> {
+            let url = "postgresql://mzeteny:zetou123@localhost:5432/".to_string()+db_name;
             self.connect(db_name,url.as_str()).await;
             let rb = match self.get_db_rb(db_name).await{
                 Some(rb) => rb,
@@ -379,12 +574,31 @@
             FROM information_schema.table_constraints 
             WHERE table_schema = 'public';";
             let result = rb.query(_sql, vec![]).await.unwrap();
+            if let Some(constraints) = result.as_array(){
+                let mut db_struct = self.databases.lock().unwrap();
+                if let Some(node) = db_struct.get_mut(db_name){
+                    let _tb_struct = node.tables.as_mut().expect("Expected some table").get_mut(table_name);
+                    let constraint_map = _tb_struct.expect("Expected some constraint").constraints.get_or_insert_with(HashMap::new);
+                    for constraint in constraints{
+                        if let Value::Map(colmap) = constraint{
+                            let constraint_name = colmap.0.get(&Value::String("constraint_name".to_string())).and_then(|v| v.as_str()).unwrap_or_default();
+                            let constraint_type = colmap.0.get(&Value::String("constraint_type".to_string())).and_then(|v| v.as_str()).unwrap_or_default();
+                            
+                            let constraint_node = crate::metadata::constraint::Constraint{
+                                name: String::from(constraint_name),
+                                c_type: String::from(constraint_type)
+                            };
+                            constraint_map.insert(constraint_name.to_string(), constraint_node);
+                        }
+                    }
+                }
+            }
             Ok(result)
 
         }
 
         async fn get_sequences(&self,db_name:&str)-> Result<Value,rbdc::Error> {
-            let url = "postgresql://postgres:@localhost:5432/".to_string()+db_name;
+            let url = "postgresql://mzeteny:zetou123@localhost:5432/".to_string()+db_name;
             self.connect(db_name,url.as_str()).await;
             let rb = match self.get_db_rb(db_name).await{
                 Some(rb) => rb,
@@ -394,12 +608,30 @@
             FROM information_schema.sequences 
             WHERE sequence_schema = 'public';";
             let result = rb.query(_sql, vec![]).await.unwrap();
+
+            if let Some(sequences) = result.as_array(){
+                let mut db_struct = self.databases.lock().unwrap();
+                if let Some(node) = db_struct.get_mut(db_name){
+                    let sequence_map = node.sequences.get_or_insert_with(HashMap::new);
+                    for seq in sequences{
+                        if let Value::Map(sequencemap) = seq{
+                            let sequence_name = sequencemap.0.get(&Value::String("sequence_name".to_string())).and_then(|v| v.as_str()).unwrap_or_default();
+                            let sequence_node = Sequence{
+                                name : sequence_name.to_string(),
+                            };
+                            sequence_map.insert(sequence_name.to_string(), sequence_node);
+                        }
+                    }
+                }
+                    
+            }
+
             Ok(result)
 
         }
 
         async fn get_roles_and_users(&self,db_name:&str)-> Result<Value,rbdc::Error> {
-            let url = "postgresql://postgres:@localhost:5432/".to_string()+db_name;
+            let url = "postgresql://mzeteny:zetou123@localhost:5432/".to_string()+db_name;
             self.connect(db_name,url.as_str()).await;
             let rb = match self.get_db_rb(db_name).await{
                 Some(rb) => rb,
@@ -412,7 +644,7 @@
         }
 
         async fn get_table_statistics(&self,db_name:&str)-> Result<Value,rbdc::Error> {
-            let url = "postgresql://postgres:@localhost:5432/".to_string()+db_name;
+            let url = "postgresql://mzeteny:zetou123@localhost:5432/".to_string()+db_name;
             self.connect(db_name,url.as_str()).await;
             let rb = match self.get_db_rb(db_name).await{
                 Some(rb) => rb,
@@ -439,7 +671,7 @@
         }
 
         async fn get_locks(&self,db_name:&str)-> Result<Value,rbdc::Error> {
-            let url = "postgresql://postgres:@localhost:5432/".to_string()+db_name;
+            let url = "postgresql://mzeteny:zetou123@localhost:5432/".to_string()+db_name;
             self.connect(db_name,url.as_str()).await;
             let rb = match self.get_db_rb(db_name).await{
                 Some(rb) => rb,
@@ -452,7 +684,7 @@
         }
 
         async fn get_partitions(&self,db_name:&str,table_name:&str)-> Result<Value,rbdc::Error> {
-            let url = "postgresql://postgres:@localhost:5432/".to_string()+db_name;
+            let url = "postgresql://mzeteny:zetou123@localhost:5432/".to_string()+db_name;
             self.connect(db_name,url.as_str()).await;
             let rb = match self.get_db_rb(db_name).await{
                 Some(rb) => rb,
@@ -474,7 +706,7 @@
         }
 
         async fn get_user_privileges(&self,db_name:&str,user_name:&str)-> Result<Value,rbdc::Error> {
-            let url = "postgresql://postgres:@localhost:5432/".to_string()+db_name;
+            let url = "postgresql://mzeteny:zetou123@localhost:5432/".to_string()+db_name;
             self.connect(db_name,url.as_str()).await;
             let rb = match self.get_db_rb(db_name).await{
                 Some(rb) => rb,
@@ -488,7 +720,7 @@
         }
 
         async fn get_database_settings(&self,db_name:&str)-> Result<Value,rbdc::Error> {
-            let url = "postgresql://postgres:@localhost:5432/".to_string()+db_name;
+            let url = "postgresql://mzeteny:zetou123@localhost:5432/".to_string()+db_name;
             self.connect(db_name,url.as_str()).await;
             let rb = match self.get_db_rb(db_name).await{
                 Some(rb) => rb,
@@ -500,7 +732,7 @@
         }
 
         async fn get_foreign_key_relationships(&self,db_name:&str)-> Result<Value,rbdc::Error> {
-            let url = "postgresql://postgres:@localhost:5432/".to_string()+db_name;
+            let url = "postgresql://mzeteny:zetou123@localhost:5432/".to_string()+db_name;
             self.connect(db_name,url.as_str()).await;
             let rb = match self.get_db_rb(db_name).await{
                 Some(rb) => rb,
@@ -518,7 +750,7 @@
         }
 
         async fn get_triggers_associated_with_table(&self,db_name:&str,table_name:&str)-> Result<Value,rbdc::Error> {
-            let url = "postgresql://postgres:@localhost:5432/".to_string()+db_name;
+            let url = "postgresql://mzeteny:zetou123@localhost:5432/".to_string()+db_name;
             self.connect(db_name,url.as_str()).await;
             let rb = match self.get_db_rb(db_name).await{
                 Some(rb) => rb,
@@ -532,7 +764,7 @@
         }
 
         async fn get_default_columns_value(&self,db_name:&str,table_name:&str)-> Result<Value,rbdc::Error> {
-            let url = "postgresql://postgres:@localhost:5432/".to_string()+db_name;
+            let url = "postgresql://mzeteny:zetou123@localhost:5432/".to_string()+db_name;
             self.connect(db_name,url.as_str()).await;
             let rb = match self.get_db_rb(db_name).await{
                 Some(rb) => rb,
@@ -545,5 +777,82 @@
             Ok(result)
 
         }
+
+        async fn get_rls_policies(&self,db_name:&str,table_name:&str)-> Result<Value,rbdc::Error> {
+            let url = "postgresql://mzeteny:zetou123@localhost:5432/".to_string()+db_name;
+            self.connect(db_name,url.as_str()).await;
+            let rb = match self.get_db_rb(db_name).await{
+                Some(rb) => rb,
+                None => return Err(rbdc::Error::from("database not found")),
+            };
+            let _sql = "SELECT pol.polname AS policy_name,
+                        pol.polcmd AS command,
+                        pg_catalog.pg_get_expr(pol.polqual, pol.polrelid) AS policy_using,
+                        pg_catalog.pg_get_expr(pol.polwithcheck, pol.polrelid) AS policy_with_check,
+                        pol.polroles AS policy_roles
+                    FROM pg_catalog.pg_policy pol
+                    JOIN pg_catalog.pg_class tab ON tab.oid = pol.polrelid
+                    JOIN pg_catalog.pg_namespace nsp ON nsp.oid = tab.relnamespace
+                    WHERE tab.relname = '?'
+                    AND nsp.nspname = 'public';";
+            let result = rb.query(_sql, vec![Value::String(table_name.to_string())]).await.unwrap();
+
+            if let Some(policies) = result.as_array(){
+                let mut db_struct = self.databases.lock().unwrap();
+                if let Some(node) = db_struct.get_mut(db_name){
+                    let tb_struct = node.tables.as_mut().expect("Expected some table").get_mut(table_name);
+                    let policy_map = tb_struct.expect("Expected some rls").rls_policies.get_or_insert_with(HashMap::new);
+                    for policy in policies{
+                        if let Value::Map(polmap) = policy{
+                            let policy_name = polmap.0.get(&Value::String("policy_name".to_string())).and_then(|v| v.as_str()).unwrap_or_default();
+                            let policy_node = RlsPolicy{
+                                name : policy_name.to_string(),
+                                command : polmap.0.get(&Value::String("command".to_string())).and_then(|v| v.as_str()).unwrap_or_default().to_string(),
+                            };
+                            policy_map.insert(policy_name.to_string(), policy_node);
+                        }
+                    }
+                }
+            }
+            Ok(result)
+
+        }
+
+        async fn get_rules(&self,db_name:&str,table_name:&str)-> Result<Value,rbdc::Error> {
+            let url = "postgresql://mzeteny:zetou123@localhost:5432/".to_string()+db_name;
+            self.connect(db_name,url.as_str()).await;
+            let rb = match self.get_db_rb(db_name).await{
+                Some(rb) => rb,
+                None => return Err(rbdc::Error::from("database not found")),
+            };
+            let _sql = "SELECT r.rulename AS rule_name,
+                        pg_get_ruledef(r.oid) AS rule_definition
+                        FROM pg_rewrite r                                                        
+                        JOIN pg_class t ON r.ev_class = t.oid
+                        WHERE t.relname = 'product';";
+            let result = rb.query(_sql, vec![Value::String(table_name.to_string())]).await.unwrap();
+            
+            if let Some(rules) = result.as_array(){
+                let mut db_struct = self.databases.lock().unwrap();
+                if let Some(node) = db_struct.get_mut(db_name){
+                    let _tb_struct = node.tables.as_mut().expect("Expected some table").get_mut(table_name);
+                    let rule_map = _tb_struct.expect("Expected some columns").rules.get_or_insert_with(HashMap::new);
+                    for rule in rules{
+                        if let Value::Map(rulemap) = rule{
+                            let rule_name = rulemap.0.get(&Value::String("rule_name".to_string())).and_then(|v| v.as_str()).unwrap_or_default();
+                            let rule_node = Rule{
+                                name : rule_name.to_string(),
+                                definition : rulemap.0.get(&Value::String("rule_definition".to_string())).and_then(|v| v.as_str()).unwrap_or_default().to_string(),
+                            };
+                            rule_map.insert(rule_name.to_string(), rule_node);
+                        }
+                    }
+                }   
+            }
+
+            Ok(result)
+
+        }
         
     }
+

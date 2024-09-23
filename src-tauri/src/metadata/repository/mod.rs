@@ -5,7 +5,6 @@ use rbdc::{db, Error};
 use rbs::Value;
 
 pub trait DatabaseRepository{
-
      async fn get_databases(&self)-> Result<Value,rbdc::Error>;
      async fn get_tables(&self, db_name:&str)-> Result<Value,rbdc::Error>;
      async fn get_columns(&self,db_name:&str,table_name:&str)-> Result<Value,rbdc::Error>;
@@ -21,8 +20,8 @@ pub trait DatabaseRepository{
      async fn get_catalogs(&self,db_name:&str)-> Result<Value,rbdc::Error>;
      async fn get_foreign_data_wrappers(&self,db_name:&str)-> Result<Value,rbdc::Error>;
      async fn get_schemas(&self,db_name:&str)-> Result<Value,rbdc::Error>;
-     async fn get_indexes(&self,db_name:&str)-> Result<Value,rbdc::Error>;
-     async fn get_constraints(&self,db_name:&str)-> Result<Value,rbdc::Error>;
+     async fn get_indexes(&self,db_name:&str,table_name:&str)-> Result<Value,rbdc::Error>;
+     async fn get_constraints(&self,db_name:&str,table_name:&str)-> Result<Value,rbdc::Error>;
      async fn get_sequences(&self,db_name:&str)-> Result<Value,rbdc::Error>;
      async fn get_roles_and_users(&self,db_name:&str)-> Result<Value,rbdc::Error>;
      async fn get_table_statistics(&self,db_name:&str)-> Result<Value,rbdc::Error>;
@@ -34,4 +33,6 @@ pub trait DatabaseRepository{
      async fn get_foreign_key_relationships(&self,db_name:&str)-> Result<Value,rbdc::Error>;
      async fn get_triggers_associated_with_table(&self,db_name:&str,table_name:&str)-> Result<Value,rbdc::Error>;
      async fn get_default_columns_value(&self,db_name:&str,table_name:&str)-> Result<Value,rbdc::Error>;
+     async fn get_rls_policies(&self,db_name:&str,table_name:&str)-> Result<Value,rbdc::Error>;
+     async fn get_rules(&self,db_name:&str,table_name:&str)-> Result<Value,rbdc::Error>;
 }

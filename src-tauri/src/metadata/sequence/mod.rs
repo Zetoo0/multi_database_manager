@@ -1,6 +1,6 @@
 use serde::{Serialize,Deserialize};
 
 #[derive(Serialize,Deserialize,Debug,Clone)]
-pub struct Trigger{
-    pub name:String
-}       
+pub struct Sequence{
+    pub name: String,
+}
