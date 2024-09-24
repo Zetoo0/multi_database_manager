@@ -5,7 +5,7 @@ import { Database } from './TreeNode';
 import TreeNode from "./TreeNode";
 
 const AppLayout: React.FC<{ children: React.ReactNode , sampleData:Database[]}> = ({ children, sampleData }) => {
-  const [sidebarLeft, setSidebarLeft] = useState<boolean>(true);
+  const [sidebarLeft, setSidebarLeft] = useState<boolean>(true);  
   
   return (
     <div className="flex flex-col h-screen bg-gray-800">

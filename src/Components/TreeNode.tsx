@@ -90,11 +90,13 @@ interface TreeNodeProps {
 }
 
 const TreeNode: React.FC<TreeNodeProps> = ({ node }) => {
+
   const [expanded, setExpanded] = useState(false);
 
   const handleNodeClick = () => {
     console.log(`Clicked on ${node.name}`);
   };
+
 
   return (
     <div className="pl-4">

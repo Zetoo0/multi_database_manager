@@ -6,6 +6,7 @@ import SqlEditor from './Components/Editor.tsx';
 import Sidebar from './Components/Sidebar.tsx';
 import { Database } from './Components/TreeNode.tsx';
 
+
 const sampleData = [
   {
     name: "Database1",
@@ -127,12 +128,12 @@ const sampleData = [
     ],
   },
 ];
-    
 
 function App() {
   return (
-    <AppLayout sampleData={sampleData}>
+    <AppLayout sampleData={ sampleData }>
       <ConnectionForm/>
+      <SqlEditor/>
     </AppLayout>
   );
 }

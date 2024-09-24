@@ -20,6 +20,7 @@ use serde_json::Value as SerdeValue;
 use strum_macros::{Display, EnumString, ToString};
 use fast_log::{init, plugin::file, Config};
 use log::{info,warn,error};
+use std::sync::Arc;
 
 use crate::metadata::repository::PostgresRepository;
 
@@ -86,7 +87,7 @@ async fn init_database(data:DatabaseConnection) -> Result<String, String> {
 async fn repo_test() -> Result<String,String> {
   log::info!("Repository");
   let rb = rbatis::RBatis::new();
-  let postgres = PostgresRepository::PostgresRepository::new();
+  let postgres = Arc::new(PostgresRepository::PostgresRepository::new());
   let databases = postgres.get_databases().await.unwrap();
   let mut tables:Value = Value::Null;
   let mut columns:Value = Value::Null;
@@ -102,6 +103,9 @@ async fn repo_test() -> Result<String,String> {
           columns = postgres.get_columns(dab.1.as_str().unwrap(), t.1.as_str().unwrap()).await.unwrap();
           println!("Columns: {:?}",columns);
           println!("Partitions: {:?}",postgres.get_partitions(dab.1.as_str().unwrap(), t.1.as_str().unwrap()).await.unwrap());
+          println!("Constraints: {:?}",postgres.get_constraints(&dab.1.as_str().unwrap(),t.1.as_str().unwrap_or_default()).await.unwrap());
+           println!("Indexes: {:?}",postgres.get_indexes(&dab.1.as_str().unwrap(),t.1.as_str().unwrap_or_default()).await.unwrap());
+
         }
       }
       println!("Views: {:?}",postgres.get_views(&dab.1.as_str().unwrap()).await.unwrap());
@@ -112,18 +116,19 @@ async fn repo_test() -> Result<String,String> {
       println!("Roles and users: {}",postgres.get_roles_and_users(&dab.1.as_str().unwrap()).await.unwrap());
       println!("languages: {:?}",postgres.get_languages(&dab.1.as_str().unwrap()).await.unwrap());
       println!("Schemas: {:?}",postgres.get_schemas(&dab.1.as_str().unwrap()).await.unwrap());
-      //println!("Indexes: {:?}",postgres.get_indexes(&dab.1.as_str().unwrap()).await.unwrap());
       println!("Active Sessions: {:?}",postgres.get_active_sessions().await.unwrap());
       println!("Materalized Views: {:?}",postgres.get_materalized_views(&dab.1.as_str().unwrap()).await.unwrap());
       println!("Event Triggers: {:?}", postgres.get_event_triggers(&dab.1.as_str().unwrap()).await.unwrap());
       println!("Types: {:?}", postgres.get_types(&dab.1.as_str().unwrap()).await.unwrap());
-      //println!("Foreign Data Wrappers: {:?}", postgres.get_foreign_data_wrappers(&dab.1.as_str().unwrap()).await.unwrap());
-     // println!("Constraints: {:?}",postgres.get_constraints(&dab.1.as_str().unwrap()).await.unwrap());
+      println!("Foreign Data Wrappers: {:?}", postgres.get_foreign_data_wrappers(&dab.1.as_str().unwrap()).await.unwrap());
       println!("Locks: {:?}", postgres.get_locks(&dab.1.as_str().unwrap()).await.unwrap());
       println!("-------------------------------------------------");
     }
   }
-  println!("{:?}",postgres.databases.lock().unwrap());
+  postgres.databases.lock().unwrap();
+  println!("{:?}", postgres.databases.lock().unwrap());
+  println!("Table product after initialization: {:?}",postgres.get_tables("products").await.unwrap());
+  println!("Table product after initialization: {:?}",postgres.get_columns("products", "product").await.unwrap());
   Ok(String::from("Successfully conneced!"))
 }
 
