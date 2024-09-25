@@ -93,6 +93,7 @@ async fn repo_test() -> Result<String,String> {
   let mut columns:Value = Value::Null;
   for db_name in databases{
     for dab in db_name.1{
+      println!("A");
       tables = postgres.get_tables(&dab.1.as_str().unwrap()).await.unwrap();
       println!("Tablet len? {:?}",tables);
       println!("Database: {:?}",dab.1.as_str().unwrap());
@@ -108,6 +109,7 @@ async fn repo_test() -> Result<String,String> {
 
         }
       }
+      println!("NZÁD");
       println!("Views: {:?}",postgres.get_views(&dab.1.as_str().unwrap()).await.unwrap());
       println!("Functions: {:?}",postgres.get_functions(&dab.1.as_str().unwrap()).await.unwrap());
       println!("Procedures: {:?}",postgres.get_stored_procedures(&dab.1.as_str().unwrap()).await.unwrap());
@@ -125,8 +127,8 @@ async fn repo_test() -> Result<String,String> {
       println!("-------------------------------------------------");
     }
   }
-  postgres.databases.lock().unwrap();
-  println!("{:?}", postgres.databases.lock().unwrap());
+  //postgres.databases.lock().unwrap();
+ // println!("{:?}", postgres.databases.lock().unwrap());
   println!("Table product after initialization: {:?}",postgres.get_tables("products").await.unwrap());
   println!("Table product after initialization: {:?}",postgres.get_columns("products", "product").await.unwrap());
   Ok(String::from("Successfully conneced!"))

@@ -10,9 +10,8 @@ use dashmap::DashMap;
 
 use serde::{Serialize,Deserialize};
 
-use dashmap::DashMap;
-use serde::{Deserialize, Deserializer};
-use std::collections::HashMap;
+use serde::{ Deserializer};
+
 #[derive(Serialize,Deserialize,Debug,Clone)]
 pub struct Table{
    pub name: String,

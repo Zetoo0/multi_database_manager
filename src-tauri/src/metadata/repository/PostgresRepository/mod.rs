@@ -6,6 +6,7 @@ use crate::metadata::{function::Function, materalized_view::MateralizedView, pro
     use crate::metadata::sequence::Sequence;
     use crate::metadata::aggregate::Aggregate;
     use crate::metadata::catalog::Catalog;
+    use dashmap::mapref::one::Ref;
     use fast_pool::Pool;
     use rbatis::{executor::RBatisRef, DefaultPool};
     use rbdc::db::{self, ConnectOptions};
@@ -14,7 +15,7 @@ use crate::metadata::{function::Function, materalized_view::MateralizedView, pro
     use rbdc_pg::*;
     use rbs::to_value;
     use std::collections::HashMap;
-    use std::{borrow::Borrow, collections::DashMap, future::Future, ops::Deref, result, sync::Mutex};
+    use std::{borrow::Borrow, future::Future, ops::Deref, result, sync::Mutex};
     use rbdc::Error;
     use rbs::Value;
     use serde::{Serialize,Deserialize};
@@ -34,14 +35,14 @@ use crate::metadata::{function::Function, materalized_view::MateralizedView, pro
         pub fn new() -> Self{
             let rb_map = DashMap::new();
             let databases = DashMap::new();
-            let base_url = String::from("postgresql://mzeteny:zetou123@localhost:5432/postgres");
+            let base_url = String::from("postgresql://postgres:@localhost:5432/postgres");
             return PostgresRepository{ rb_map, base_url, databases};
         }
 
         ///Add the database to the pool if not exists
         ///It's create a new rbatis, initialize it add add to the pool
         async fn connect(&self,db_name:&str,url:&str) -> Result<(), Box<dyn std::error::Error>> {
-            if !rb_map.contains_key(db_name){
+            if !self.rb_map.contains_key(db_name){
                 log::info!("new pool adding... database: {:?}",db_name);
                 let rb = Arc::new(rbatis::RBatis::new());
                 let _ = rb.init(PgDriver {}, url);
@@ -70,26 +71,26 @@ use crate::metadata::{function::Function, materalized_view::MateralizedView, pro
         }
 
         ///Get the database rbatis from the pool
-        async fn get_db_rb(&self,db_name:&str) -> Option<Arc<rbatis::RBatis>>{
+        /*async fn get_db_rb(&self,db_name:&str) -> std::option::Option<dashmap::mapref::one::Ref<'_, std::string::String, Arc<_>, >>{
             self.rb_map.get(db_name)
-        }
+        }*/
 
-        async fn get_database_(&self,db_name:&str)->Option<Database>{
+        async fn get_database_(&self,db_name:&str)->std::option::Option<dashmap::mapref::one::Ref<'_, std::string::String, Database, >>{
             self.databases.get(db_name)
             //let mut dbs = self.databases.lock().unwrap();
             //dbs.get_mut(db_name).cloned()
         }
 
         //connect to rbatis if it isnt cached
-        async fn rbatis_connect(&self,db_name:&str)->Result<Option<Arc<rbatis::RBatis>>,rbdc::Error>{
-            let cached_rb = self.get_db_rb(db_name).await;
+        async fn rbatis_connect(&self,db_name:&str)->Result<Option<Ref<'_,String,Arc<rbatis::RBatis>>>,rbdc::Error>{
+            let cached_rb = self.rb_map.get(db_name);
             if cached_rb.is_some(){
                 return Ok(cached_rb);
             }
             
-            let url = "postgresql://mzeteny:zetou123@localhost:5432/".to_string()+db_name;
+            let url = "postgresql://postgres:@localhost:5432/".to_string()+db_name;
             let _ = self.connect(db_name,url.as_str()).await;
-            let rb = match self.get_db_rb(db_name).await{
+            let rb = match self.rb_map.get(db_name){
                 Some(rb) => Some(rb),
                 None => return Err(rbdc::Error::from("database not found")),
             };
@@ -109,11 +110,11 @@ use crate::metadata::{function::Function, materalized_view::MateralizedView, pro
             WHERE datistemplate=false;";
             let result = rb.query(_sql,vec![]).await?;
 
-            ///iterate through databases and insert into the pool and the database map(db.1 = database name)
+            //iterate through databases and insert into the pool and the database map(db.1 = database name)
             if let Some(databases) = result.as_array(){
                 for db_val in databases{
                     for db in db_val{
-                        if !rb_map.contains_key(db.1.as_str().unwrap()){
+                        if !self.rb_map.contains_key(db.1.as_str().unwrap()){
                             let rb = Arc::new(rbatis::RBatis::new());
 
                             self.rb_map.insert(db.1.to_string(),rb);
@@ -152,27 +153,30 @@ use crate::metadata::{function::Function, materalized_view::MateralizedView, pro
             let result = rb.query(_sql,vec![]).await?;
             if let Some(tables) = result.as_array(){
                // let mut db_struct = self.databases.lock().unwrap();
-                if let Some(mut node) = self.databases.get(db_name){
+                if let Some(mut node) = self.databases.get_mut(db_name){
                     println!("TABLES: {:?}", tables);
                     let table_map = node.tables.get_or_insert_with(HashMap::new);
-                    
+                    println!("{:?}",table_map);
+                    println!("{:?}",tables);
+                    println!("IN da table?");
                     for table in tables{
                         if let Value::Map(tablemap) = table{
                             let table_name = tablemap.0.get(&Value::String("table_name".to_string())).and_then(|v| v.as_str()).unwrap_or_default();
                         
                             let tb_node = Table{
                                 name : table_name.to_string(), 
-                                columns : Some(DashMap::new()),
-                                constraints: Some(DashMap::new()),
-                                indexes: Some(DashMap::new()),
-                                triggers: Some(DashMap::new()),
-                                rules: Some(DashMap::new()),
-                                rls_policies: Some(DashMap::new()),
+                                columns : Some(HashMap::new()),
+                                constraints: Some(HashMap::new()),
+                                indexes: Some(HashMap::new()),
+                                triggers: Some(HashMap::new()),
+                                rules: Some(HashMap::new()),
+                                rls_policies: Some(HashMap::new()),
                             };
                             table_map.insert(table_name.to_string(), tb_node);
                         }
+                        println!("after trzna adding?");
                     }
-                    println!("TABLE VALUES COLLECTED: {:?}",db_struct.get(db_name).unwrap().tables.clone().unwrap().into_values().collect::<Vec<Table>>());
+                    println!("TABLE VALUES COLLECTED: {:?}",self.databases.get(db_name).unwrap().tables.clone().unwrap().into_values().collect::<Vec<Table>>());
                 }
             }
             
@@ -189,24 +193,25 @@ use crate::metadata::{function::Function, materalized_view::MateralizedView, pro
             let result = rb.query(_sql, vec![Value::String(table_name.to_string())]).await.unwrap();
             
             if let Some(cols) = result.as_array(){
-                if let Some(node) = self.databases.get(db_name){
-                    let mut table_map: Option<HashMap<String, Table>> = node.tables;
-                    let columns_map = table_map.as_mut().unwrap().get_mut(table_name).unwrap().columns.get_or_insert_with(HashMap::new);
-                    for col in cols{
-                        if let Value::Map(colmap) = col{
-                            let col_name = colmap.0.get(&Value::String("column_name".to_string())).and_then(|v| v.as_str()).unwrap_or_default();
-                            let data_type = colmap.0.get(&Value::String("data_type".to_string())).and_then(|v| v.as_str()).unwrap_or_default();
-                            let is_nullable = colmap.0.get(&Value::String("is_nullable".to_string())).and_then(|v| v.as_bool()).unwrap_or_default();
-                            let column_default = colmap.0.get(&Value::String("column_default".to_string())).and_then(|v| v.as_str()).unwrap_or_default();
-                            
-                            let _col_node = crate::metadata::column::Column{
-                                name : String::from(col_name),//col_name.1.to_string(),
-                                data_type: Some(String::from(data_type)),     
-                                is_nullable: Some(is_nullable),
-                                default_value: Some(String::from(column_default)),
-                            };
-                            
-                            columns_map.insert(col_name.to_string(), _col_node);
+                if let Some(mut node) = self.databases.get_mut(db_name){
+                    if let Some(table_map) = node.tables.clone().unwrap().get_mut(table_name){
+                        let columns_map = table_map.columns.get_or_insert_with(HashMap::new);
+                        for col in cols{
+                            if let Value::Map(colmap) = col{
+                                let col_name = colmap.0.get(&Value::String("column_name".to_string())).and_then(|v| v.as_str()).unwrap_or_default();
+                                let data_type = colmap.0.get(&Value::String("data_type".to_string())).and_then(|v| v.as_str()).unwrap_or_default();
+                                let is_nullable = colmap.0.get(&Value::String("is_nullable".to_string())).and_then(|v| v.as_bool()).unwrap_or_default();
+                                let column_default = colmap.0.get(&Value::String("column_default".to_string())).and_then(|v| v.as_str()).unwrap_or_default();
+                                
+                                let _col_node = crate::metadata::column::Column{
+                                    name : String::from(col_name),//col_name.1.to_string(),
+                                    data_type: Some(String::from(data_type)),     
+                                    is_nullable: Some(is_nullable),
+                                    default_value: Some(String::from(column_default)),
+                                };
+                                
+                                columns_map.insert(col_name.to_string(), _col_node);
+                            }
                         }
                     }
                 }
@@ -225,7 +230,7 @@ use crate::metadata::{function::Function, materalized_view::MateralizedView, pro
             
             if let Some(views) = result.as_array(){
                // let mut db_struct = self.databases.lock().unwrap();
-                if let Some(node) = self.databases.get(db_name){
+                if let Some(mut node) = self.databases.get_mut(db_name){
                     let view_map = node.views.get_or_insert_with(HashMap::new);
                     for view in views{
                         if let Value::Map(viewmap) = view{
@@ -253,7 +258,7 @@ use crate::metadata::{function::Function, materalized_view::MateralizedView, pro
 
             if let Some(stored_procedures) = result.as_array(){
                 //let mut db_struct = self.databases.lock().unwrap();
-                if let Some(node) = self.databases.get(db_name){
+                if let Some(mut node) = self.databases.get_mut(db_name){
                     let stored_procedure_map = node.procedures.get_or_insert_with(HashMap::new);
                     for stored_procedure in stored_procedures{
                         if let Value::Map(stored_proceduremap) = stored_procedure{
@@ -288,7 +293,7 @@ use crate::metadata::{function::Function, materalized_view::MateralizedView, pro
 
             if let Some(functions) = result.as_array(){
                 //let mut db_struct = self.databases.lock().unwrap();
-                if let Some(node) = self.databases.get(db_name){
+                if let Some(mut node) = self.databases.get_mut(db_name){
                     let function_map = node.functions.get_or_insert_with(HashMap::new);
                     for function in functions{
                         if let Value::Map(functionmap) = function{
@@ -312,7 +317,7 @@ use crate::metadata::{function::Function, materalized_view::MateralizedView, pro
             let result = rb.query(_sql, vec![]).await.unwrap();
             if let Some(triggers) = result.as_array(){
                 //let mut db_struct = self.databases.lock().unwrap();
-                if let Some(node) = self.databases.get(db_name){
+                if let Some(mut node) = self.databases.get_mut(db_name){
                     let trigger_map = node.triggers.get_or_insert_with(HashMap::new);
                     for trigger in triggers{
                         if let Value::Map(triggermap) = trigger{
@@ -348,7 +353,7 @@ use crate::metadata::{function::Function, materalized_view::MateralizedView, pro
             let result = rb.query(_sql, vec![]).await.unwrap();
             if let Some(aggregates) = result.as_array(){
                // let mut db_struct = self.databases.lock().unwrap();
-                if let Some(node) = self.databases.get(db_name){
+                if let Some(mut node) = self.databases.get_mut(db_name){
                     let aggregate_map = node.aggregates.get_or_insert_with(HashMap::new);
                     for aggregate in aggregates{
                         if let Value::Map(aggregatemap) = aggregate{
@@ -373,7 +378,7 @@ use crate::metadata::{function::Function, materalized_view::MateralizedView, pro
 
             if let Some(matview) = result.as_array(){
                // let mut db_struct = self.databases.lock().unwrap();
-                if let Some(node) = self.databases.get(db_name){
+                if let Some(mut node) = self.databases.get_mut(db_name){
                     let matview_map = node.materalized_views.get_or_insert_with(HashMap::new);
                     for matview in matview{
                         if let Value::Map(matviewmap) = matview{
@@ -420,7 +425,7 @@ use crate::metadata::{function::Function, materalized_view::MateralizedView, pro
         async fn get_languages(&self,db_name:&str)-> Result<Value,rbdc::Error> {
             let url = "postgresql://mzeteny:zetou123@localhost:5432/".to_string()+db_name;
             let _ = self.connect(db_name,url.as_str()).await;
-            let rb = match self.get_db_rb(db_name).await{
+            let rb = match self.rb_map.get(db_name){
                 Some(rb) => rb,
                 None => return Err(rbdc::Error::from("database not found")),
             };
@@ -443,7 +448,7 @@ use crate::metadata::{function::Function, materalized_view::MateralizedView, pro
 
             if let Some(catalogs) = result.as_array(){
                // let mut db_struct = self.databases.lock().unwrap();
-                if let Some(node) = self.databases.get(db_name){
+                if let Some(mut node) = self.databases.get_mut(db_name){
                     let catalog_map = node.catalogs.get_or_insert_with(HashMap::new);
                     for catalog in catalogs{
                         if let Value::Map(catalogmap) = catalog{
@@ -470,7 +475,7 @@ use crate::metadata::{function::Function, materalized_view::MateralizedView, pro
 
             if let Some(foreign_data_wrappers) = result.as_array(){
                 //let mut db_struct = self.databases.lock().unwrap();
-                if let Some(node) = self.databases.get(db_name){
+                if let Some(mut node) = self.databases.get_mut(db_name){
                     let foreign_data_wrapper_map = node.foreign_data_wrappers.get_or_insert_with(HashMap::new);
                     for foreign_data_wrapper in foreign_data_wrappers{
                         if let Value::Map(fdw_map) = foreign_data_wrapper{
@@ -512,21 +517,24 @@ use crate::metadata::{function::Function, materalized_view::MateralizedView, pro
             
             if let Some(indexes) = result.as_array(){
                 //let mut db_struct = self.databases.lock().unwrap();
-                if let Some(node) = self.databases.get(db_name){
-                    let mut table_map: Option<HashMap<String, Table>> = node.tables;
-                    let index_map = table_map.as_mut().unwrap().get(table_name).unwrap().indexes.get_or_insert_with(HashMap::new());
-                    for index in indexes{
-                        if let Value::Map(indexmap) = index{
-                            let index_name = indexmap.0.get(&Value::String("indexname".to_string())).and_then(|v| v.as_str()).unwrap_or_default();
-                            let index_definition = indexmap.0.get(&Value::String("indexdef".to_string())).and_then(|v| v.as_str()).unwrap_or_default();
-                            
-                            let index_node = crate::metadata::index::Index{
-                                name : String::from(index_name),
-                                definition: Some(String::from(index_definition)),     
-                            };
-                            index_map.insert(index_name.to_string(), index_node);
+                if let Some(mut node) = self.databases.get(db_name){
+                    if let Some(table_map) = node.tables.clone().unwrap().get_mut(db_name){
+                        let index_map = table_map.indexes.get_or_insert_with(HashMap::new);
+                        for index in indexes{
+                            if let Value::Map(indexmap) = index{
+                                let index_name = indexmap.0.get(&Value::String("indexname".to_string())).and_then(|v| v.as_str()).unwrap_or_default();
+                                let index_definition = indexmap.0.get(&Value::String("indexdef".to_string())).and_then(|v| v.as_str()).unwrap_or_default();
+                                
+                                let index_node = crate::metadata::index::Index{
+                                    name : String::from(index_name),
+                                    definition: Some(String::from(index_definition)),     
+                                };
+                                index_map.insert(index_name.to_string(), index_node);
+                            }
                         }
                     }
+                    //let mut table_map: Option<HashMap<String, Table>> = node.tables;
+
                 }
             }
 
@@ -542,21 +550,24 @@ use crate::metadata::{function::Function, materalized_view::MateralizedView, pro
             let result = rb.query(_sql, vec![]).await.unwrap();
             if let Some(constraints) = result.as_array(){
                 //let mut db_struct = self.databases.lock().unwrap();
-                if let Some(node) = self.databases.get(db_name){
-                    let mut table_map: Option<HashMap<String, Table>> = node.tables;
-                    let constraint_map = table_map.as_mut().unwrap().get(table_name).unwrap().constraints.get_or_insert_with(HashMap::new());
-                    for constraint in constraints{
-                        if let Value::Map(colmap) = constraint{
-                            let constraint_name = colmap.0.get(&Value::String("constraint_name".to_string())).and_then(|v| v.as_str()).unwrap_or_default();
-                            let constraint_type = colmap.0.get(&Value::String("constraint_type".to_string())).and_then(|v| v.as_str()).unwrap_or_default();
-                            
-                            let constraint_node = crate::metadata::constraint::Constraint{
-                                name: String::from(constraint_name),
-                                c_type: String::from(constraint_type)
-                            };
-                            constraint_map.insert(constraint_name.to_string(), constraint_node);
+                if let Some(mut node) = self.databases.get(db_name){
+                    if let Some(table_map) = node.tables.clone().unwrap().get_mut(table_name){
+                        let constraint_map = table_map.constraints.get_or_insert_with(HashMap::new);
+                        for constraint in constraints{
+                            if let Value::Map(colmap) = constraint{
+                                let constraint_name = colmap.0.get(&Value::String("constraint_name".to_string())).and_then(|v| v.as_str()).unwrap_or_default();
+                                let constraint_type = colmap.0.get(&Value::String("constraint_type".to_string())).and_then(|v| v.as_str()).unwrap_or_default();
+                                
+                                let constraint_node = crate::metadata::constraint::Constraint{
+                                    name: String::from(constraint_name),
+                                    c_type: String::from(constraint_type)
+                                };
+                                constraint_map.insert(constraint_name.to_string(), constraint_node);
+                            }
                         }
                     }
+                    //let table_map = node.tables.clone().unwrap().get_mut(table_name);
+                    
                 }
             }
             Ok(result)
@@ -573,7 +584,7 @@ use crate::metadata::{function::Function, materalized_view::MateralizedView, pro
 
             if let Some(sequences) = result.as_array(){
                 //let mut db_struct = self.databases.lock().unwrap();
-                if let Some(node) = self.databases.get(db_name){
+                if let Some(mut node) = self.databases.get_mut(db_name){
                     let sequence_map = node.sequences.get_or_insert_with(HashMap::new);
                     for seq in sequences{
                         if let Value::Map(sequencemap) = seq{
@@ -613,7 +624,7 @@ use crate::metadata::{function::Function, materalized_view::MateralizedView, pro
 
         async fn get_active_sessions(&self)-> Result<Value,rbdc::Error> {
             self.connect("postgres",self.base_url.as_str()).await;
-            let rb = match self.get_db_rb("postgres").await{
+            let rb = match self.rb_map.get("postgres"){
                 Some(rb) => rb,
                 None => return Err(rbdc::Error::from("database not found")),
             };
@@ -720,10 +731,9 @@ use crate::metadata::{function::Function, materalized_view::MateralizedView, pro
             let result = rb.query(_sql, vec![Value::String(table_name.to_string())]).await.unwrap();
 
             if let Some(policies) = result.as_array(){
-               // let mut db_struct = self.databases.lock().unwrap();
-                if let Some(node) = self.databases.get(db_name){
-                    let mut table_map: Option<HashMap<String, Table>> = node.tables;
-                    let policy_map = table_map.as_mut().unwrap().get(table_name).unwrap().rls_policies.get_or_insert_with(HashMap::new());
+                if let Some(mut node) = self.databases.get_mut(db_name){
+                    if let Some(table_map) = node.tables.clone().unwrap().get_mut(table_name){
+                    let policy_map = table_map.rls_policies.get_or_insert_with(HashMap::new);
                     for policy in policies{
                         if let Value::Map(polmap) = policy{
                             let policy_name = polmap.0.get(&Value::String("policy_name".to_string())).and_then(|v| v.as_str()).unwrap_or_default();
@@ -734,6 +744,8 @@ use crate::metadata::{function::Function, materalized_view::MateralizedView, pro
                             policy_map.insert(policy_name.to_string(), policy_node);
                         }
                     }
+                    }
+
                 }
             }
             Ok(result)
@@ -752,19 +764,23 @@ use crate::metadata::{function::Function, materalized_view::MateralizedView, pro
             
             if let Some(rules) = result.as_array(){
                 //let mut db_struct = self.databases.lock().unwrap();
+               // let db_str = self.databases.get(db_name);
                 if let Some(mut node) = self.databases.get(db_name){
-                    let table_map = node.tables.as_mut().unwrap().get(table_name);
-                    let rule_map = table_map.unwrap().rules.get_or_insert_with(HashMap::new);//table_map.unwrap().get(table_name).unwrap().rules.get_or_insert_with(HashMap::new);//table_map.as_mut().unwrap().get(table_name).unwrap().rules.get_or_insert_with(HashMap::new());
-                    for rule in rules{
-                        if let Value::Map(rulemap) = rule{
-                            let rule_name = rulemap.0.get(&Value::String("rule_name".to_string())).and_then(|v| v.as_str()).unwrap_or_default();
-                            let rule_node = Rule{
-                                name : rule_name.to_string(),
-                                definition : rulemap.0.get(&Value::String("rule_definition".to_string())).and_then(|v| v.as_str()).unwrap_or_default().to_string(),
-                            };
-                            rule_map.insert(rule_name.to_string(), rule_node);
+                    if let Some(table_map) = node.tables.clone().unwrap().get_mut(table_name){
+                        let rule_map = table_map.rules.get_or_insert_with(HashMap::new);//table_map.unwrap().get(table_name).unwrap().rules.get_or_insert_with(HashMap::new);//table_map.as_mut().unwrap().get(table_name).unwrap().rules.get_or_insert_with(HashMap::new());
+                        for rule in rules{
+                            if let Value::Map(rulemap) = rule{
+                                let rule_name = rulemap.0.get(&Value::String("rule_name".to_string())).and_then(|v| v.as_str()).unwrap_or_default();
+                                let rule_node = Rule{
+                                    name : rule_name.to_string(),
+                                    definition : rulemap.0.get(&Value::String("rule_definition".to_string())).and_then(|v| v.as_str()).unwrap_or_default().to_string(),
+                                };
+                                rule_map.insert(rule_name.to_string(), rule_node);
+                            }
                         }
                     }
+                    //let table_map = node.tables.clone().unwrap().get(db_name).unwrap();
+
                 }   
             }
 

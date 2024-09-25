@@ -6,9 +6,7 @@ use crate::metadata::aggregate::Aggregate;
 use crate::metadata::rls_policy::RlsPolicy;
 use crate::metadata::catalog::Catalog;
 use dashmap::DashMap;
-use dashmap::DashMap;
-use serde::{Deserialize, Deserializer};
-use std::collections::HashMap;
+use serde::{Deserializer};
 
 #[derive(Serialize,Deserialize,Debug,Clone)]
 pub struct Database{
