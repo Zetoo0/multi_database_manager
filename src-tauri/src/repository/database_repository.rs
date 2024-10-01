@@ -1,10 +1,8 @@
-pub mod PostgresRepository;
-
 use std::future::Future;
 use rbdc::{db, Error};
 use rbs::Value;
 
-pub trait DatabaseRepository{
+pub trait DatabaseRepository: Send + Sync + Clone + 'static{
      async fn get_databases(&self)-> Result<Value,rbdc::Error>;
      async fn get_tables(&self, db_name:&str)-> Result<Value,rbdc::Error>;
      async fn get_columns(&self,db_name:&str,table_name:&str)-> Result<Value,rbdc::Error>;

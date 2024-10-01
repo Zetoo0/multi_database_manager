@@ -5,11 +5,11 @@ import { Database } from './TreeNode';
 import TreeNode from "./TreeNode";
 
 const AppLayout: React.FC<{ children: React.ReactNode , sampleData:Database[]}> = ({ children, sampleData }) => {
-  const [sidebarLeft, setSidebarLeft] = useState<boolean>(true);
+  const [sidebarLeft, setSidebarLeft] = useState<boolean>(true);  
   
   return (
     <div className="flex flex-col h-screen bg-gray-800">
-      {/* Top Navigation Bar */}
+      {/* Navigation Bar */}
       <div className="bg-gray-800 text-white flex items-center p-4 space-x-4">
         <button className="hover:text-red-200">File</button>
         <button className="hover:text-red-200">Tools</button>
@@ -28,7 +28,7 @@ const AppLayout: React.FC<{ children: React.ReactNode , sampleData:Database[]}> 
             </button>
           </div>
 
-          {/* Databases Tree Structure */}
+          {/* Databases Structure */}
           <div className="mt-6">
             <h2 className="text-xl font-bold mb-2">Databases</h2>
             {sampleData.length === 0 ? (
@@ -41,7 +41,7 @@ const AppLayout: React.FC<{ children: React.ReactNode , sampleData:Database[]}> 
           </div>
         </div>
         
-        {/* Main Content */}
+        {/* Content */}
         <div className="flex-1 p-8">
           {children}
         </div>

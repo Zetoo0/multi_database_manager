@@ -6,8 +6,9 @@ use crate::metadata::constraint::Constraint;
 use crate::metadata::index::Index;
 use crate::metadata::rls_policy::RlsPolicy;
 use crate::metadata::rule::Rule;
-
+use dashmap::DashMap;
 use serde::{Serialize,Deserialize};
+
 
 #[derive(Serialize,Deserialize,Debug,Clone)]
 pub struct Table{

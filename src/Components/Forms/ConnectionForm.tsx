@@ -23,15 +23,14 @@
         const [conn,setConn] = useState<DatabaseConnection | null>();
 
         async function submitConnection() {
-            console.log("Geci");  
             const connectionData:DatabaseConnection = {
                 port,server,username,password,driver_type:driverType
             };
             console.log(connectionData);
             try {
-                await invoke('repo_test').then((resp) => alert(resp));
+                await invoke('repo_test',{dbConnection : connectionData}).then((resp) => alert(resp));
               } catch (error) {
-                alert('Error sending struct:');
+                alert(error);
               }
 
         }
@@ -39,7 +38,7 @@
         return(
             <div className="connection-form bg-black p-6 rounded-lg shadow-lg max-w-md mx-auto">
                 <h2 className="text-2xl font-semibold text-beige-800 mb-4">Database Connection</h2>
-                <form onSubmit={(e) => {e.preventDefault()  ;submitConnection()} } className="space-y-4">
+                <form onSubmit={(e) => {e.preventDefault(); submitConnection()} } className="space-y-4">
                     <div>
                     <label className="block text-sm font-medium text-beige-700">
                         Driver Type
@@ -48,7 +47,7 @@
                         value={driverType}
                         onChange={(e) => setDriverType(e.target.value)}
                     >
-                        <option value="postgres">Postgres</option>
+                        <option value="postgresql">Postgres</option>
                         <option value="mysql">MySQL</option>
                         <option value="sqlite">SQLite</option>
                         <option value="mssql">MSSQL</option>
