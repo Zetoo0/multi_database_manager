@@ -1,0 +1,68 @@
+{
+  "groups": {
+    "app": "アプリ設定"
+  },
+  "general": {
+    "title": "一般",
+    "subtitle": "一般設定"
+  },
+  "language": {
+    "title": "言語",
+    "subtitle": "優先する言語を選択してください"
+  },
+  "appearance": {
+    "title": "外観",
+    "subtitle": "アプリの外観をカスタマイズできます",
+    "theme": {
+      "title": "テーマ"
+    },
+    "dir": {
+      "title": "読み方向",
+      "help": "読み方向を選択してください",
+      "ltr": "左から右",
+      "rtl": "右から左"
+    },
+    "layout": {
+      "title": "レイアウト",
+      "left": "左",
+      "top": "上",
+      "leftRtl": "右"
+    }
+  },
+  "about": {
+    "title": "アプリについて",
+    "subtitle": "アプリの情報"
+  },
+  "test": {
+    "title": "テスト",
+    "subtitle": "テスト設定",
+    "parsed": {
+      "title": "解析済み",
+      "log": "解析結果をコンソールに出力"
+    },
+    "osInfo": {
+      "title": "オペレーティングシステム情報",
+      "log": "OS情報をコンソールに出力"
+    },
+    "osTypes": {
+      "title": "オペレーティングシステムの種類",
+      "log": "OSの種類をコンソールに出力"
+    },
+    "systemFonts": {
+      "title": "システムフォント",
+      "log": "システムフォントをコンソールに出力"
+    },
+    "userSettings": {
+      "title": "ユーザー設定",
+      "log": "コンソールに出力"
+    },
+    "defaultUserSettings": {
+      "title": "デフォルトのユーザー設定",
+      "log": "コンソールに出力"
+    },
+    "saveUserSettings": {
+      "title": "ユーザー設定の保存",
+      "log": "保存"
+    }
+  }
+}

@@ -1,0 +1,25 @@
+{
+    "migration":{
+        "database":"Adatbázis",
+        "databaseType":"Adatbázis típus",
+        "migrate":"Migráció",
+        "dmlRowLimitPerFile":"DML sorok száma fájlonként",
+        "excludeColumns":"Oszlopok elhagyása",
+        "migration" : "Migráció",
+        "migrationForm" : "Migráció Oldal"
+    },
+    "connection" : {
+        "driverType" : "Adatbázis Driver típus",
+        "server": "Szerver cím",
+        "port": "Port",
+        "username":"Felhasználónév",
+        "password":"Jelszó",
+        "selectSqliteFile":"SQLite fájl kiválasztása",
+        "connections" : "Csatlakozások",
+        "connectionList" : "Csatlakozási Lista",
+        "newConnection" : "Új csatlakozás",
+        "databaseConnection":"Adatbázis Csatlakozás",
+        "connect" : "Csatlakozás",
+        "saveConnection" : "Csatlakozási információ mentése"
+    }
+}

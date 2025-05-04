@@ -1,0 +1,21 @@
+{
+  "newFile": "Nuevo archivo",
+  "openFile": "Abrir archivo",
+  "search": "Buscar",
+  "settings": "Configuración",
+  "tools": "Herramientas",
+  "connection": "Conexión",
+
+  "file": "Archivo",
+  "edit": "Editar",
+  "find": "Buscar",
+  "undo": "Deshacer",
+  "redo": "Rehacer",
+  "cut": "Cortar",
+  "copy": "Copiar",
+  "paste": "Pegar",
+  "query": "Consulta",
+  "newConnection": "Nueva conexión",
+  "connections": "Conexiones",
+  "refreshMetadata" : "Actualizar metadatos"
+}

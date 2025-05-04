@@ -1,0 +1,11 @@
+{
+  "actions": {
+    "save": "Save",
+    "apply": "Apply",
+    "custom": "Custom",
+    "execute" : "Execute",
+    "connect": "Connect",
+    "close": "Close"
+  },
+  "database" : "Database"
+}

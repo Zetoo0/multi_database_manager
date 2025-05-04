@@ -1,0 +1,25 @@
+{
+    "migration": {
+        "database": "Base de datos",
+        "databaseType": "Tipo de base de datos",
+        "migrate": "Migrar",
+        "dmlRowLimitPerFile": "Límite de filas DML por archivo",
+        "excludeColumns": "Excluir columnas",
+        "migration": "Migración",
+        "migrationForm": "Formulario de migración"
+    },
+    "connection": {
+        "driverType": "Tipo de controlador de base de datos",
+        "server": "Dirección del servidor",
+        "port": "Puerto",
+        "username": "Nombre de usuario",
+        "password": "Contraseña",
+        "selectSqliteFile": "Seleccionar archivo SQLite",
+        "connections": "Conexiones",
+        "connectionList": "Lista de conexiones",
+        "newConnection": "Nueva conexión",
+        "databaseConnection": "Conexión de base de datos",
+        "connect": "Conectar",
+        "saveConnection": "Guardar conexión"
+    }
+}

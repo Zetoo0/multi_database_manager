@@ -1,0 +1,11 @@
+(DML) Limit for how many lines should contain the file, params: line num
+Excludes: what columns should be excluded from the insert, params: Vec<Cols||Colname(String)>
+Obfuscation: obfuscate the columns with a "function", like table.col is email and obfuscation type is replace and replace all the email before @ part with something like names(should be uwus xd), params: table cols, obfuscation type
+
+File structure:
+ for ddl:
+	DDL->create-user.sql, create-role.sql
+ for dml:
+	DML->USER->user-table-1.sql,user-table-y.sql stb...
+
+crate: NIO

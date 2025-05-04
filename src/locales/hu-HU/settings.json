@@ -1,0 +1,82 @@
+{
+  "groups": {
+    "app": "App Beállítások"
+  },
+  "general": {
+    "title": "Általános",
+    "subtitle": "Általános beállítások"
+  },
+  "language": {
+    "title": "Nyelv",
+    "subtitle": "Válasszon egy preferált nyelvet"
+  },
+  "appearance": {
+    "title": "Megjelenés",
+    "subtitle": "Személyre szabhatja az alkalmazás megjelenését",
+    "theme": {
+      "title": "Téma",
+      "color": {
+        "customizeTheme" : "Téma testreszabása",
+        "background" : "Háttér",
+        "foreground" : "Előtér",
+        "primary" : "Elsődleges",
+        "secondary" : "Másodlagos",
+        "accent" : "Súly",
+        "border" : "Keret"
+      },
+      "editor": {
+        "image" : "Kódszerkesztó háttérkép",
+        "selectFile" : "Fájl kiválasztása",
+        "baseTheme": "Kódszerkesztó téma"
+      }
+    },
+    "dir": {
+      "title": "Olvasási irány",
+      "help": "Válassza ki az olvasási irányt",
+      "ltr": "Balról jobbra",
+      "rtl": "Jobbról balra"
+    },
+    "layout": {
+      "title": "Elrendezés",
+      "left": "Bal",
+      "top": "Felső",
+      "leftRtl": "Jobb"
+    }
+  },
+  "about": {
+    "title": "Névjegy",
+    "subtitle": "Az alkalmazásról"
+  },
+  "test": {
+    "title": "Teszt",
+    "subtitle": "Teszt beállítások",
+    "parsed": {
+      "title": "Parsed",
+      "log": "Parse kiírása a konzolra"
+    },
+    "osInfo": {
+      "title": "Operációs rendszer információ",
+      "log": "Operációs rendszer információ kiírása a konzolra"
+    },
+    "osTypes": {
+      "title": "Operációs rendszer típusok",
+      "log": "Operációs rendszer típusok kiírása a konzolra"
+    },
+    "systemFonts": {
+      "title": "Rendszer betűtípusok",
+      "log": "Rendszer betűtípusok kiírása a konzolra"
+    },
+    "userSettings": {
+      "title": "Felhasználói beállítások",
+      "log": "Kiírás a konzolra"
+    },
+    "defaultUserSettings": {
+      "title": "Alapértelmezett felhasználói beállítások",
+      "log": "Kiírás a konzolra"
+    },
+    "saveUserSettings": {
+      "title": "Felhasználói beállítások mentése",
+      "log": "Mentés"
+    }
+  }
+}

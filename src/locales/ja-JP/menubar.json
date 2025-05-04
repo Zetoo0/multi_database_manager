@@ -1,0 +1,21 @@
+{
+  "newFile": "新しいファイル",
+  "openFile": "ファイルを開く",
+  "search": "検索",
+  "settings": "設定",
+  "tools": "ツール",
+  "connection": "接続",
+
+  "file": "ファイル",
+  "edit": "編集",
+  "find": "検索",
+  "undo": "元に戻す",
+  "redo": "やり直し",
+  "cut": "切り取り",
+  "copy": "コピー",
+  "paste": "貼り付け",
+  "query": "クエリ",
+  "newConnection": "新しい接続",
+  "connections": "接続",
+  "refreshMetadata": "メタデータを更新"
+}

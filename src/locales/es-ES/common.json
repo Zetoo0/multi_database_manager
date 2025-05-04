@@ -1,0 +1,7 @@
+{
+  "actions": {
+    "save": "Guardar",
+    "apply": "Aplicar",
+    "custom": "Personalizado"
+  }
+}

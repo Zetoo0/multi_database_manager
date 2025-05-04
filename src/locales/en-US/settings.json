@@ -1,0 +1,82 @@
+{
+  "groups": {
+    "app": "App Settings"
+  },
+  "general": {
+    "title": "General",
+    "subtitle": "General settings"
+  },
+  "language": {
+    "title": "Language",
+    "subtitle": "Select your preferred language"
+  },
+  "appearance": {
+    "title": "Appearance",
+    "subtitle": "Customize the look of the app",
+    "theme": {
+      "title": "Theme",
+      "color": {
+        "customizeTheme" : "Customize theme",
+        "background" : "Background",
+        "foreground" : "Foreground",
+        "primary" : "Primary",
+        "secondary" : "Secondary",
+        "accent" : "Accent",
+        "border" : "Border"
+      },
+      "editor": {
+        "image" : "Editor theme image",
+        "selectFile" : "Select file",
+        "baseTheme": "Editor base theme"
+      }
+    },
+    "dir": {
+      "title": "Reading direction",
+      "help": "Select the reading direction",
+      "ltr": "Left-to-right",
+      "rtl": "Right-to-left"
+    },
+    "layout": {
+      "title": "Layout",
+      "left": "Left",
+      "top": "Top",
+      "leftRtl": "Right"
+    }
+  },
+  "about": {
+    "title": "About",
+    "subtitle": "About the app"
+  },
+  "test": {
+    "title": "Test",
+    "subtitle": "Test settings",
+    "parsed": {
+      "title": "Parsed",
+      "log": "Parse test to console"
+    },
+    "osInfo": {
+      "title": "OS Info",
+      "log": "Log OS info to console"
+    },
+    "osTypes": {
+      "title": "OS Types",
+      "log": "Log OS types to console"
+    },
+    "systemFonts": {
+      "title": "System Fonts",
+      "log": "Log system fonts to console"
+    },
+    "userSettings": {
+      "title": "User settings",
+      "log": "Log to console"
+    },
+    "defaultUserSettings": {
+      "title": "Default user settings",
+      "log": "Log to console"
+    },
+    "saveUserSettings": {
+      "title": "Save user settings",
+      "log": "Save"
+    }
+  }
+}

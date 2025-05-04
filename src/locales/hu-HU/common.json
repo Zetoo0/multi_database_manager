@@ -1,0 +1,10 @@
+{
+  "actions": {
+    "save": "Mentés",
+    "apply": "Alkalmaz",
+    "custom": "Egyedi",
+    "execute": "Végrehajtás",
+    "connect": "Csatlakozás"
+  },
+  "database" : "Adatbázis"
+}

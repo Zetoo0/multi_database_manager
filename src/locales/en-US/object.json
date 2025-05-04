@@ -1,0 +1,12 @@
+{
+    "name":"Name",
+    "primaryKey":"Primary Key",
+    "tableName":"Table Name",
+    "columnName":"Column Name",
+    "dataType":"Data Type",
+    "isNullable":"Is Nullable",
+    "defaultValue":"Default Value",
+    "isPrimaryKey":"Is Primary Key",
+    "maximumLength":"Maximum Length",
+    "nullable":"Nullable"
+}

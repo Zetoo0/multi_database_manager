@@ -1,0 +1,9 @@
+{
+    "tableName":"Tábla Neve",
+    "columnMame":"Oszlop Neve",
+    "dataType":"Adattípus",
+    "isNullable":"Nullázható",
+    "defaultValue":"Alapértelmezett érték",
+    "isPrimaryKey":"Elsődleges kulcs-e",
+    "maximumLength":"Maximumális Hossz"
+}

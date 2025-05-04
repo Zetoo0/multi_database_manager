@@ -1,0 +1,68 @@
+{
+  "groups": {
+    "app": "Configuración de la aplicación"
+  },
+  "general": {
+    "title": "General",
+    "subtitle": "Configuraciones generales"
+  },
+  "language": {
+    "title": "Idioma",
+    "subtitle": "Seleccione un idioma preferido"
+  },
+  "appearance": {
+    "title": "Apariencia",
+    "subtitle": "Personaliza la apariencia de la aplicación",
+    "theme": {
+      "title": "Tema"
+    },
+    "dir": {
+      "title": "Dirección de lectura",
+      "help": "Seleccione la dirección de lectura",
+      "ltr": "De izquierda a derecha",
+      "rtl": "De derecha a izquierda"
+    },
+    "layout": {
+      "title": "Diseño",
+      "left": "Izquierda",
+      "top": "Superior",
+      "leftRtl": "Derecha"
+    }
+  },
+  "about": {
+    "title": "Acerca de",
+    "subtitle": "Información sobre la aplicación"
+  },
+  "test": {
+    "title": "Prueba",
+    "subtitle": "Configuraciones de prueba",
+    "parsed": {
+      "title": "Analizado",
+      "log": "Mostrar el análisis en la consola"
+    },
+    "osInfo": {
+      "title": "Información del sistema operativo",
+      "log": "Mostrar información del sistema operativo en la consola"
+    },
+    "osTypes": {
+      "title": "Tipos de sistema operativo",
+      "log": "Mostrar tipos de sistema operativo en la consola"
+    },
+    "systemFonts": {
+      "title": "Fuentes del sistema",
+      "log": "Mostrar fuentes del sistema en la consola"
+    },
+    "userSettings": {
+      "title": "Configuraciones de usuario",
+      "log": "Mostrar en la consola"
+    },
+    "defaultUserSettings": {
+      "title": "Configuraciones predeterminadas del usuario",
+      "log": "Mostrar en la consola"
+    },
+    "saveUserSettings": {
+      "title": "Guardar configuraciones de usuario",
+      "log": "Guardar"
+    }
+  }
+}

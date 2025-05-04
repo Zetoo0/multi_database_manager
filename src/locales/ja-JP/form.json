@@ -1,0 +1,25 @@
+{
+    "migration" : {
+        "database" : "データベース",
+        "databaseType" : "データベースの種類",
+        "migrate" : "移行",
+        "dmlRowLimitPerFile" : "ファイルごとのDML行制限",
+        "excludeColumns" : "除外する列",
+        "migration" : "移行",
+        "migrationForm" : "移行フォーム"
+    },
+    "connection" : {
+        "driverType" : "データベースドライバーの種類",
+        "server": "サーバーアドレス",
+        "port": "ポート",
+        "username":"ユーザー名",
+        "password":"パスワード",
+        "selectSqliteFile":"SQLiteファイルを選択",
+        "connections" : "接続",
+        "connectionList" : "接続リスト",
+        "newConnection" : "新しい接続",
+        "databaseConnection":"データベース接続",
+        "connect" : "接続",
+        "saveConnection" : "接続を保存"
+    }
+}

@@ -1,0 +1,22 @@
+{
+  "newFile": "New File",
+  "openFile": "Open File",
+  "search": "Search",
+  "settings": "Settings",
+  "tools": "Tools",
+  "connection": "Connection",
+
+  "file": "File",
+  "edit": "Edit",
+  "find": "Find",
+  "undo": "Undo",
+  "redo": "Redo",
+  "cut": "Cut",
+  "copy": "Copy",
+  "paste": "Paste",
+  "query": "Query",
+  "newConnection": "New Connection",
+  "connections": "Connections",
+  "createDatabase": "Create Database",
+  "refreshMetadata" : "Refresh Metadata"
+}

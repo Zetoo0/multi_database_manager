@@ -1,0 +1,22 @@
+{
+  "newFile": "Új fájl",
+  "openFile": "Fájl megnyitása",
+  "search": "Keresés",
+  "settings": "Beállítások",
+  "tools": "Eszközök",
+  "connection": "Kapcsolat",
+
+  "file": "Fájl",
+  "edit": "Szerkesztés",
+  "find": "Keresés",
+  "undo": "Visszavonás",
+  "redo": "Ismétlés",
+  "cut": "Kivágás",
+  "copy": "Másolás",
+  "paste": "Beillesztés",
+  "query": "Lekérdezés",
+  "newConnection": "Új kapcsolat",
+  "connections": "Kapcsolatok",
+  "createDatabase": "Adatbázis létrehozás",
+  "refreshMetadata": "Adatbázis frissítése"
+}

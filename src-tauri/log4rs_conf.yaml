@@ -1,0 +1,33 @@
+appenders:
+  stdout:
+    kind: console
+    encoder:
+      pattern: "{d(%+)(utc)} [{f}:{L}] {h({l})} {M}:{m}{n}"
+    filters:
+      - kind: threshold
+        level: debug
+  file:
+    kind: file
+    path: "log/dbr.log"
+    encoder:
+      pattern: "[{d(%Y-%m-%dT%H:%M:%S%.6f)} {h({l}):<5.5} {M}] {m}{n}"
+  rollingfile:
+    kind: rolling_file
+    path: "log/dbr_rolling.log"
+    encoder:
+      pattern: "[{d(%Y-%m-%dT%H:%M:%S%.6f)} {h({l}):<5.5} {M}] {m}{n}"
+    policy:
+      trigger:
+        kind: size
+        limit: 5_000_000
+      roller:
+        kind: fixed_window
+        pattern: "log/old-writepad_rolling-{}.log"
+        base: 0
+        count: 2
+root:
+  level: debug
+  appenders:
+    - stdout
+    - file
+    - rollingfile

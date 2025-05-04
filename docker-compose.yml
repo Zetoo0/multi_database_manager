@@ -1,0 +1,13 @@
+version: '3.9'
+
+services:
+  tauri-app:
+    build:
+      context: .
+    environment:
+      - DISPLAY=${DISPLAY}
+      - TAURI_DEV=false
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix
+    stdin_open: true
+    tty: true
